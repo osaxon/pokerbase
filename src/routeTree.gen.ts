@@ -12,13 +12,7 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignInImport } from './routes/sign-in'
-import { Route as PostsImport } from './routes/posts'
 import { Route as IndexImport } from './routes/index'
-import { Route as LessonsIndexImport } from './routes/lessons.index'
-import { Route as DashboardIndexImport } from './routes/dashboard.index'
-import { Route as LessonsLessonIdImport } from './routes/lessons.$lessonId'
-import { Route as DashboardUserIdImport } from './routes/dashboard.$userId'
-import { Route as LessonsModulesModuleIdImport } from './routes/lessons.modules.$moduleId'
 
 // Create/Update Routes
 
@@ -27,38 +21,8 @@ const SignInRoute = SignInImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const PostsRoute = PostsImport.update({
-  path: '/posts',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const IndexRoute = IndexImport.update({
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const LessonsIndexRoute = LessonsIndexImport.update({
-  path: '/lessons/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DashboardIndexRoute = DashboardIndexImport.update({
-  path: '/dashboard/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const LessonsLessonIdRoute = LessonsLessonIdImport.update({
-  path: '/lessons/$lessonId',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DashboardUserIdRoute = DashboardUserIdImport.update({
-  path: '/dashboard/$userId',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const LessonsModulesModuleIdRoute = LessonsModulesModuleIdImport.update({
-  path: '/lessons/modules/$moduleId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -73,13 +37,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/posts': {
-      id: '/posts'
-      path: '/posts'
-      fullPath: '/posts'
-      preLoaderRoute: typeof PostsImport
-      parentRoute: typeof rootRoute
-    }
     '/sign-in': {
       id: '/sign-in'
       path: '/sign-in'
@@ -87,56 +44,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInImport
       parentRoute: typeof rootRoute
     }
-    '/dashboard/$userId': {
-      id: '/dashboard/$userId'
-      path: '/dashboard/$userId'
-      fullPath: '/dashboard/$userId'
-      preLoaderRoute: typeof DashboardUserIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/lessons/$lessonId': {
-      id: '/lessons/$lessonId'
-      path: '/lessons/$lessonId'
-      fullPath: '/lessons/$lessonId'
-      preLoaderRoute: typeof LessonsLessonIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/lessons/': {
-      id: '/lessons/'
-      path: '/lessons'
-      fullPath: '/lessons'
-      preLoaderRoute: typeof LessonsIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/lessons/modules/$moduleId': {
-      id: '/lessons/modules/$moduleId'
-      path: '/lessons/modules/$moduleId'
-      fullPath: '/lessons/modules/$moduleId'
-      preLoaderRoute: typeof LessonsModulesModuleIdImport
-      parentRoute: typeof rootRoute
-    }
   }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({
-  IndexRoute,
-  PostsRoute,
-  SignInRoute,
-  DashboardUserIdRoute,
-  LessonsLessonIdRoute,
-  DashboardIndexRoute,
-  LessonsIndexRoute,
-  LessonsModulesModuleIdRoute,
-})
+export const routeTree = rootRoute.addChildren({ IndexRoute, SignInRoute })
 
 /* prettier-ignore-end */
 
@@ -147,38 +60,14 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/posts",
-        "/sign-in",
-        "/dashboard/$userId",
-        "/lessons/$lessonId",
-        "/dashboard/",
-        "/lessons/",
-        "/lessons/modules/$moduleId"
+        "/sign-in"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/posts": {
-      "filePath": "posts.tsx"
-    },
     "/sign-in": {
       "filePath": "sign-in.tsx"
-    },
-    "/dashboard/$userId": {
-      "filePath": "dashboard.$userId.tsx"
-    },
-    "/lessons/$lessonId": {
-      "filePath": "lessons.$lessonId.tsx"
-    },
-    "/dashboard/": {
-      "filePath": "dashboard.index.tsx"
-    },
-    "/lessons/": {
-      "filePath": "lessons.index.tsx"
-    },
-    "/lessons/modules/$moduleId": {
-      "filePath": "lessons.modules.$moduleId.tsx"
     }
   }
 }

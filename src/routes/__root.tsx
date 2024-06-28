@@ -36,26 +36,17 @@ function RootComponent() {
                         >
                             <SvgLogo />
                         </Link>
-                        <Link
-                            to="/lessons"
-                            activeProps={{
-                                className: "font-bold underline",
-                            }}
-                        >
-                            Lessons
-                        </Link>
                     </nav>
                     <div>
                         {context.auth.model ? (
                             <Button asChild>
                                 <Link
-                                    to="/dashboard/$userId"
-                                    params={{ userId: context.auth.model?.id }}
+                                    to="/"
                                     activeProps={{
                                         className: "font-bold underline",
                                     }}
                                 >
-                                    My Dashboard
+                                    Dashboard
                                 </Link>
                             </Button>
                         ) : (

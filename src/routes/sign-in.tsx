@@ -30,10 +30,7 @@ export const Route = createFileRoute("/sign-in")({
     beforeLoad: ({ context }) => {
         if (context.auth.isValid) {
             throw redirect({
-                to: `/dashboard/$userId`,
-                params: {
-                    userId: context.auth.model?.id,
-                },
+                to: "/",
             });
         }
     },
