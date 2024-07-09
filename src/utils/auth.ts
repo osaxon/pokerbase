@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useMutation } from "@tanstack/react-query";
-import { pb } from "@/lib/pocketbase";
 import { z } from "zod";
 import { RecordAuthResponse } from "pocketbase";
-import { UsersRecord, UsersResponse } from "@/types/pocketbase-types";
-import { MyRouter } from "@/main";
+import {
+    TypedPocketBase,
+    UsersRecord,
+    UsersResponse,
+} from "@/types/pocketbase-types";
+import { MyRouter } from "@/App";
 import { toast } from "sonner";
 
 export const loginError = {
@@ -17,7 +20,7 @@ const loginSchema = z.object({
     password: z.string().min(6),
 });
 
-export const useLogin = (router: MyRouter) =>
+export const useLogin = (router: MyRouter, pb: TypedPocketBase) =>
     useMutation({
         mutationFn: async (
             formData: z.infer<typeof loginSchema>
@@ -31,6 +34,9 @@ export const useLogin = (router: MyRouter) =>
             if (data.token) {
                 toast.success("Logged in successfully");
                 router.invalidate();
+                router.navigate({
+                    to: "/",
+                });
             }
         },
         onError: (err) => {

@@ -37,8 +37,18 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
+export enum RoomsStatusOptions {
+	"open" = "open",
+	"in progress" = "in progress",
+	"completed" = "completed",
+}
 export type RoomsRecord = {
+	members?: RecordIdString[]
 	name?: string
+	owner?: RecordIdString
+	squad?: RecordIdString
+	status?: RoomsStatusOptions
+	stories?: RecordIdString[]
 }
 
 export type SquadsRecord = {
@@ -47,8 +57,10 @@ export type SquadsRecord = {
 }
 
 export type StoriesRecord = {
+	points?: number
 	room?: RecordIdString
 	title?: string
+	voted?: boolean
 }
 
 export enum UsersRoleOptions {
@@ -60,6 +72,7 @@ export type UsersRecord = {
 	avatar?: string
 	name?: string
 	role?: UsersRoleOptions
+	rooms?: RecordIdString[]
 	squad?: RecordIdString
 }
 

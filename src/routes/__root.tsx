@@ -1,23 +1,35 @@
+import UserAvatar from "@/components/UserAvatar";
 import SvgLogo from "@/components/svg-logo";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import type { TypedPocketBase } from "@/types/pocketbase-types";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
+    ErrorComponentProps,
     Link,
     Outlet,
     createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
-import { BaseAuthStore } from "pocketbase";
+import { AuthModel } from "pocketbase";
+import { Suspense } from "react";
 
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient;
-    auth: BaseAuthStore;
+    token: string;
+    user: AuthModel | undefined;
+    pb: TypedPocketBase;
 }>()({
     pendingMs: 3000,
     component: RootComponent,
+    errorComponent: Error,
 });
+
+function Error(data: ErrorComponentProps) {
+    console.log(data);
+    return <>{data.error.message}</>;
+}
 
 function RootComponent() {
     const context = Route.useRouteContext();
@@ -38,17 +50,13 @@ function RootComponent() {
                         </Link>
                     </nav>
                     <div>
-                        {context.auth.model ? (
-                            <Button asChild>
-                                <Link
-                                    to="/"
-                                    activeProps={{
-                                        className: "font-bold underline",
-                                    }}
-                                >
-                                    Dashboard
-                                </Link>
-                            </Button>
+                        {context.pb.authStore.isValid ? (
+                            <div className="flex items-center gap-8 w-full">
+                                <Suspense fallback={<>...</>}>
+                                    <UserAvatar />
+                                </Suspense>
+                                <Button asChild>Rooms</Button>
+                            </div>
                         ) : (
                             <Link
                                 to="/sign-in"

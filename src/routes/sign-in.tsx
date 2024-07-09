@@ -8,10 +8,9 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { pb } from "@/lib/pocketbase";
 import { loginError, useLogin } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useLayoutEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,13 +26,16 @@ const loginSchema = z.object({
 
 export const Route = createFileRoute("/sign-in")({
     validateSearch: (search) => validSearchParms.parse(search),
-    beforeLoad: ({ context }) => {
-        if (context.auth.isValid) {
-            throw redirect({
-                to: "/",
-            });
-        }
-    },
+    // beforeLoad: ({ context }) => {
+    //     if (context.user) {
+    //         throw redirect({
+    //             to: `/dashboard/$userId`,
+    //             params: {
+    //                 userId: context.user?.id,
+    //             },
+    //         });
+    //     }
+    // },
 }).update({
     component: SignInComponent,
 });
@@ -41,7 +43,7 @@ export const Route = createFileRoute("/sign-in")({
 function SignInComponent() {
     const router = useRouter();
     const { isValid } = Route.useRouteContext({
-        select: ({ auth }) => ({ isValid: auth.isValid }),
+        select: ({ token }) => ({ isValid: token }),
     });
     const search = Route.useSearch();
 
@@ -53,7 +55,9 @@ function SignInComponent() {
         },
     });
 
-    const { mutate: login, isError } = useLogin(router);
+    const pb = Route.useRouteContext({ select: ({ pb }) => pb });
+
+    const { mutate: login, isError } = useLogin(router, pb);
 
     const onSubmit = async (formData: z.infer<typeof loginSchema>) => {
         console.log(formData);
@@ -87,9 +91,11 @@ function SignInComponent() {
                                 <FormControl>
                                     <Input placeholder="" {...field} />
                                 </FormControl>
+                                <FormMessage />
                             </FormItem>
                         )}
                     />
+
                     <FormField
                         control={form.control}
                         name="password"

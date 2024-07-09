@@ -73,6 +73,22 @@
                         "admin"
                     ]
                 }
+            },
+            {
+                "system": false,
+                "id": "fucnfnob",
+                "name": "rooms",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "kyyn5ey0xpab30y",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": null,
+                    "displayFields": null
+                }
             }
         ],
         "indexes": [],
@@ -112,11 +128,92 @@
                     "max": null,
                     "pattern": ""
                 }
+            },
+            {
+                "system": false,
+                "id": "p1se4r5w",
+                "name": "squad",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "1yqjzh65g354p1l",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "ukjpkgvq",
+                "name": "owner",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "_pb_users_auth_",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "dl6ywwpm",
+                "name": "stories",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "9bkj3p4d8xtnrvt",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": null,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "vkexmf06",
+                "name": "status",
+                "type": "select",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "open",
+                        "in progress",
+                        "completed"
+                    ]
+                }
+            },
+            {
+                "system": false,
+                "id": "hubcoihm",
+                "name": "members",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "_pb_users_auth_",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": null,
+                    "displayFields": null
+                }
             }
         ],
         "indexes": [],
-        "listRule": null,
-        "viewRule": null,
+        "listRule": "@request.auth.verified = true",
+        "viewRule": "",
         "createRule": null,
         "updateRule": null,
         "deleteRule": null,
@@ -201,6 +298,30 @@
                     "minSelect": null,
                     "maxSelect": 1,
                     "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "bbpz19kv",
+                "name": "voted",
+                "type": "bool",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {}
+            },
+            {
+                "system": false,
+                "id": "sdpol2us",
+                "name": "points",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "noDecimal": false
                 }
             }
         ],

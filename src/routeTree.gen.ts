@@ -13,6 +13,8 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignInImport } from './routes/sign-in'
 import { Route as IndexImport } from './routes/index'
+import { Route as DashboardIndexImport } from './routes/dashboard.index'
+import { Route as RoomsIdImport } from './routes/rooms.$id'
 
 // Create/Update Routes
 
@@ -23,6 +25,16 @@ const SignInRoute = SignInImport.update({
 
 const IndexRoute = IndexImport.update({
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DashboardIndexRoute = DashboardIndexImport.update({
+  path: '/dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const RoomsIdRoute = RoomsIdImport.update({
+  path: '/rooms/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -44,12 +56,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInImport
       parentRoute: typeof rootRoute
     }
+    '/rooms/$id': {
+      id: '/rooms/$id'
+      path: '/rooms/$id'
+      fullPath: '/rooms/$id'
+      preLoaderRoute: typeof RoomsIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({ IndexRoute, SignInRoute })
+export const routeTree = rootRoute.addChildren({
+  IndexRoute,
+  SignInRoute,
+  RoomsIdRoute,
+  DashboardIndexRoute,
+})
 
 /* prettier-ignore-end */
 
@@ -60,7 +91,9 @@ export const routeTree = rootRoute.addChildren({ IndexRoute, SignInRoute })
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/sign-in"
+        "/sign-in",
+        "/rooms/$id",
+        "/dashboard/"
       ]
     },
     "/": {
@@ -68,6 +101,12 @@ export const routeTree = rootRoute.addChildren({ IndexRoute, SignInRoute })
     },
     "/sign-in": {
       "filePath": "sign-in.tsx"
+    },
+    "/rooms/$id": {
+      "filePath": "rooms.$id.tsx"
+    },
+    "/dashboard/": {
+      "filePath": "dashboard.index.tsx"
     }
   }
 }
