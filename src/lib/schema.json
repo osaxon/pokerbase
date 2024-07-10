@@ -92,8 +92,8 @@
             }
         ],
         "indexes": [],
-        "listRule": "id = @request.auth.id",
-        "viewRule": "id = @request.auth.id",
+        "listRule": "@request.auth.squad = squad",
+        "viewRule": "@request.auth.squad = squad",
         "createRule": "",
         "updateRule": "id = @request.auth.id",
         "deleteRule": "id = @request.auth.id",
@@ -209,10 +209,26 @@
                     "maxSelect": null,
                     "displayFields": null
                 }
+            },
+            {
+                "system": false,
+                "id": "j29m6jmy",
+                "name": "activeStory",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "9bkj3p4d8xtnrvt",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
             }
         ],
         "indexes": [],
-        "listRule": "@request.auth.verified = true",
+        "listRule": "  @request.auth.verified = true && @request.auth.id ?= members.id",
         "viewRule": "",
         "createRule": null,
         "updateRule": null,
@@ -323,11 +339,27 @@
                     "max": null,
                     "noDecimal": false
                 }
+            },
+            {
+                "system": false,
+                "id": "unvvuoep",
+                "name": "status",
+                "type": "select",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSelect": 1,
+                    "values": [
+                        "to estimate",
+                        "estimated"
+                    ]
+                }
             }
         ],
         "indexes": [],
-        "listRule": null,
-        "viewRule": null,
+        "listRule": "@request.auth.verified = true && @request.auth.id ?= room.members",
+        "viewRule": "@request.auth.verified = true && @request.auth.id ?= room.members.id",
         "createRule": null,
         "updateRule": null,
         "deleteRule": null,
@@ -391,11 +423,27 @@
                         "13"
                     ]
                 }
+            },
+            {
+                "system": false,
+                "id": "v3zuxswr",
+                "name": "room",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "kyyn5ey0xpab30y",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
             }
         ],
         "indexes": [],
-        "listRule": null,
-        "viewRule": null,
+        "listRule": "",
+        "viewRule": "",
         "createRule": null,
         "updateRule": null,
         "deleteRule": null,

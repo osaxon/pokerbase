@@ -43,6 +43,7 @@ export enum RoomsStatusOptions {
 	"completed" = "completed",
 }
 export type RoomsRecord = {
+	activeStory?: RecordIdString
 	members?: RecordIdString[]
 	name?: string
 	owner?: RecordIdString
@@ -56,9 +57,14 @@ export type SquadsRecord = {
 	name?: string
 }
 
+export enum StoriesStatusOptions {
+	"to estimate" = "to estimate",
+	"estimated" = "estimated",
+}
 export type StoriesRecord = {
 	points?: number
 	room?: RecordIdString
+	status?: StoriesStatusOptions
 	title?: string
 	voted?: boolean
 }
@@ -86,6 +92,7 @@ export enum VotesVoteOptions {
 	"E13" = "13",
 }
 export type VotesRecord = {
+	room?: RecordIdString
 	story?: RecordIdString
 	user?: RecordIdString
 	vote?: VotesVoteOptions
