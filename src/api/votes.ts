@@ -1,5 +1,20 @@
-import { TypedPocketBase } from "@/types/pocketbase-types";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import {
+    TypedPocketBase,
+    VotesRecord,
+    VotesResponse,
+} from "@/types/pocketbase-types";
+import { QueryClient, useMutation, queryOptions } from "@tanstack/react-query";
+
+export const votesQueryOptions = (pb: TypedPocketBase, roomId: string) =>
+    queryOptions({
+        queryKey: ["votes", roomId],
+        queryFn: async () =>
+            await pb
+                .collection("votes")
+                .getFullList<VotesResponse<VotesRecord>>({
+                    filter: pb.filter("room = {:roomId}", { roomId }),
+                }),
+    });
 
 export const useAddVote = (userId: string, queryClient: QueryClient) => {
     return useMutation({

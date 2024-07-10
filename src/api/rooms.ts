@@ -51,7 +51,6 @@ export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
             activeStory: StoriesResponse<StoriesRecord>;
         }>
     >(id, { expand: "members, stories, activeStory, votes_via_room.user" });
-    console.log(res, "res....");
     return res;
 };
 

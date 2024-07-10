@@ -1,5 +1,5 @@
 import { roomQuery } from "@/api/rooms";
-import { useAddVote, useUpdateVote } from "@/api/votes";
+import { useAddVote, useUpdateVote, votesQueryOptions } from "@/api/votes";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,15 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { VotesVoteOptions } from "@/types/pocketbase-types";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import {
+    TypedPocketBase,
+    VotesRecord,
+    VotesResponse,
+    VotesVoteOptions,
+} from "@/types/pocketbase-types";
+import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/rooms/$id")({
     component: RoomComponent,
@@ -23,16 +29,18 @@ function RoomComponent() {
     const { id } = Route.useParams();
     const ctx = Route.useRouteContext();
     const { data: room } = useSuspenseQuery(roomQuery(id, ctx.pb));
+    const { data: votes } = useSuspenseQuery(
+        votesQueryOptions(ctx.pb, room.id)
+    );
 
     const hasVoted = (userId: string) => {
-        return (
-            room.expand?.votes_via_room.find((v) => v.user === userId) !=
-            undefined
-        );
+        return votes.find((v) => v.user === userId) != undefined;
     };
 
+    console.log(votes, "votes");
+
     const getUserVote = (userId: string) =>
-        room.expand?.votes_via_room.find((v) => v.user === userId);
+        votes.find((v) => v.user === userId);
 
     const { mutate: addVote } = useAddVote(ctx.user?.id, ctx.queryClient);
     const { mutate: updateVote } = useUpdateVote(ctx.user?.id, ctx.queryClient);
@@ -59,6 +67,37 @@ function RoomComponent() {
         }
     };
 
+    const realTime = async (
+        pb: TypedPocketBase,
+        queryClient: QueryClient,
+        queryKey: string[]
+    ) => {
+        return await pb
+            .collection("votes")
+            .subscribe<VotesResponse<VotesRecord>>("*", (d) => {
+                console.log(d.record, "realtime");
+                const { record } = d;
+                queryClient.setQueryData(
+                    queryKey,
+                    (old) =>
+                        old && [
+                            ...old.filter((v) => v.id !== record.id),
+                            { ...record },
+                        ]
+                );
+            });
+    };
+
+    const unsub = async () => await ctx.pb.collection("votes").unsubscribe("*");
+
+    useEffect(() => {
+        console.log("use effect");
+        realTime(ctx.pb, ctx.queryClient, ["votes", room.id]);
+        return () => {
+            unsub();
+        };
+    }, []);
+
     return (
         <div className="max-w-5xl mx-auto min-h-screen space-y-8 p-10">
             <div className="space-y-6">
@@ -81,14 +120,19 @@ function RoomComponent() {
                     <p className="text-xl">{room.expand?.activeStory.title}</p>
                 </div>
                 <ul className="flex">
-                    {room.expand?.members.map((mem) => (
-                        <li key={mem.id}>
-                            <RoomMemberAvatar
-                                voted={hasVoted(mem.id)}
-                                member={mem}
-                            />
-                        </li>
-                    ))}
+                    {votes &&
+                        room.expand?.members.map((mem) => (
+                            <li
+                                className="first:-ml-0 -ml-3 flex flex-col items-center"
+                                key={mem.id}
+                            >
+                                <RoomMemberAvatar
+                                    voted={hasVoted(mem.id)}
+                                    member={mem}
+                                />
+                                {votes.find((v) => v.user === mem.id)?.vote}
+                            </li>
+                        ))}
                 </ul>
             </div>
 
