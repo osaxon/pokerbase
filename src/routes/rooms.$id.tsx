@@ -1,4 +1,5 @@
 import { roomQuery } from "@/api/rooms";
+import { useAddVote, useUpdateVote } from "@/api/votes";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,11 +11,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import {
-    UsersRecord,
-    UsersResponse,
-    VotesVoteOptions,
-} from "@/types/pocketbase-types";
+import { VotesVoteOptions } from "@/types/pocketbase-types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -27,20 +24,53 @@ function RoomComponent() {
     const ctx = Route.useRouteContext();
     const { data: room } = useSuspenseQuery(roomQuery(id, ctx.pb));
 
-    const hasVoted = (mem: UsersResponse<UsersRecord>) => {
+    const hasVoted = (userId: string) => {
         return (
-            room.expand?.votes_via_room.find((v) => v.user === mem.id) !=
+            room.expand?.votes_via_room.find((v) => v.user === userId) !=
             undefined
         );
+    };
+
+    const getUserVote = (userId: string) =>
+        room.expand?.votes_via_room.find((v) => v.user === userId);
+
+    const { mutate: addVote } = useAddVote(ctx.user?.id, ctx.queryClient);
+    const { mutate: updateVote } = useUpdateVote(ctx.user?.id, ctx.queryClient);
+
+    const handleAddOrUpdate = (vote: string) => {
+        if (hasVoted(ctx.user?.id)) {
+            const voteId = getUserVote(ctx.user?.id)?.id;
+            if (!voteId) throw new Error("invalid vote id");
+            console.log(voteId, "the vote id");
+            updateVote({
+                voteId: voteId,
+                pb: ctx.pb,
+                score: vote,
+                storyId: room.expand?.activeStory.id ?? "",
+            });
+        } else {
+            addVote({
+                pb: ctx.pb,
+                score: vote,
+                storyId: room.expand?.activeStory.id ?? "",
+                userId: ctx.user?.id,
+                roomId: room.id,
+            });
+        }
     };
 
     return (
         <div className="max-w-5xl mx-auto min-h-screen space-y-8 p-10">
             <div className="space-y-6">
                 <ul className="flex gap-4 justify-center flex-wrap max-w-sm mx-auto">
-                    {Object.values(VotesVoteOptions).map((v) => (
-                        <li>
-                            <Button size="icon" variant="outline">
+                    {Object.entries(VotesVoteOptions).map(([_k, v]) => (
+                        <li key={v + _k}>
+                            <Button
+                                onClick={() => handleAddOrUpdate(v)}
+                                className="text-3xl"
+                                size="card"
+                                variant="outline"
+                            >
                                 {v}
                             </Button>
                         </li>
@@ -52,7 +82,12 @@ function RoomComponent() {
                 </div>
                 <ul className="flex">
                     {room.expand?.members.map((mem) => (
-                        <RoomMemberAvatar voted={hasVoted(mem)} member={mem} />
+                        <li key={mem.id}>
+                            <RoomMemberAvatar
+                                voted={hasVoted(mem.id)}
+                                member={mem}
+                            />
+                        </li>
                     ))}
                 </ul>
             </div>
@@ -84,7 +119,7 @@ function RoomComponent() {
                         {room.expand?.stories
                             .filter((s) => s.voted)
                             .map((story) => (
-                                <TableRow>
+                                <TableRow key={story.id}>
                                     <TableCell className="font-medium w-full">
                                         {story.title}
                                     </TableCell>

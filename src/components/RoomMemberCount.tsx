@@ -14,17 +14,13 @@ export function RoomMemberAvatar({
     member: UsersRecord;
     voted?: boolean;
 }) {
-    console.log(voted);
     return (
         <HoverCard>
             <HoverCardTrigger className="first:ml-0 -ml-3">
-                <Avatar className=" border cursor-default">
+                <Avatar className=" cursor-default">
                     <AvatarImage src={member.avatar} />
                     <AvatarFallback
-                        className={cn(
-                            "text-muted-foreground",
-                            voted ? "bg-green-400" : ""
-                        )}
+                        className={cn(voted ? "bg-green-300/75" : "")}
                     >
                         {member.name?.slice(0, 2)}
                     </AvatarFallback>
