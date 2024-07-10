@@ -77,7 +77,11 @@ function RoomComponent() {
             .subscribe<VotesResponse<VotesRecord>>("*", (d) => {
                 console.log(d.record, "realtime");
                 const { record } = d;
-                queryClient.setQueryData(
+                queryClient.setQueryData<
+                    unknown,
+                    string[],
+                    VotesResponse<VotesRecord>[]
+                >(
                     queryKey,
                     (old) =>
                         old && [
