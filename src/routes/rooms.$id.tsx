@@ -1,8 +1,15 @@
-import { roomQuery } from "@/api/rooms";
+import { joinRoom, roomQuery } from "@/api/rooms";
 import { useAddVote, useUpdateVote, votesQueryOptions } from "@/api/votes";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import {
     Table,
     TableBody,
@@ -17,7 +24,11 @@ import {
     VotesResponse,
     VotesVoteOptions,
 } from "@/types/pocketbase-types";
-import { QueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+    QueryClient,
+    useMutation,
+    useSuspenseQuery,
+} from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -35,6 +46,10 @@ function RoomComponent() {
 
     const hasVoted = (userId: string) => {
         return votes.find((v) => v.user === userId) != undefined;
+    };
+
+    const isJoined = (userId: string) => {
+        return room.members.includes(userId);
     };
 
     console.log(votes, "votes");
@@ -95,12 +110,15 @@ function RoomComponent() {
     const unsub = async () => await ctx.pb.collection("votes").unsubscribe("*");
 
     useEffect(() => {
-        console.log("use effect");
         realTime(ctx.pb, ctx.queryClient, ["votes", room.id]);
         return () => {
             unsub();
         };
     }, []);
+
+    if (!isJoined(ctx.user?.id)) {
+        return <JoinRoomDialog roomId={room.id} />;
+    }
 
     return (
         <div className="max-w-5xl mx-auto min-h-screen space-y-8 p-10">
@@ -121,7 +139,9 @@ function RoomComponent() {
                 </ul>
                 <div>
                     <h2 className="text-2xl font-semibold">Reviewing</h2>
-                    <p className="text-xl">{room.expand?.activeStory.title}</p>
+                    <p className="text-xl">
+                        {room.expand?.activeStory?.title ?? ""}
+                    </p>
                 </div>
                 <ul className="flex">
                     {votes &&
@@ -185,5 +205,46 @@ function RoomComponent() {
                 </Table>
             </div>
         </div>
+    );
+}
+
+function JoinRoomDialog({ roomId }: { roomId: string }) {
+    const ctx = Route.useRouteContext();
+
+    const { mutate: join } = useMutation({
+        mutationKey: ["rooms", "join", ctx.user?.id],
+        mutationFn: async ({
+            userId,
+            roomId,
+            pb,
+        }: {
+            userId: string;
+            roomId: string;
+            pb: TypedPocketBase;
+        }) => await joinRoom(userId, pb, roomId),
+    });
+
+    return (
+        <Dialog defaultOpen={true}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Join Room</DialogTitle>
+                    <DialogDescription>
+                        {ctx.user?.username}
+                        <Button
+                            onClick={() =>
+                                join({
+                                    userId: ctx.user?.id,
+                                    pb: ctx.pb,
+                                    roomId,
+                                })
+                            }
+                        >
+                            Join
+                        </Button>
+                    </DialogDescription>
+                </DialogHeader>
+            </DialogContent>
+        </Dialog>
     );
 }

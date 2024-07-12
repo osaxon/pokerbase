@@ -1,13 +1,10 @@
 import {
-    RoomsRecord,
     RoomsResponse,
-    RoomsStatusOptions,
     StoriesRecord,
     StoriesResponse,
     TypedPocketBase,
     UsersRecord,
     UsersResponse,
-    VotesRecord,
     VotesResponse,
 } from "@/types/pocketbase-types";
 import { queryOptions } from "@tanstack/react-query";
@@ -27,17 +24,14 @@ export const roomsQuery = (pb: TypedPocketBase) =>
 export const fetchRooms = async (pb: TypedPocketBase) => {
     const res = await pb
         .collection("rooms")
-        .getList<RoomsResponse<RoomsRecord>>(1, 5, {
+        .getList<
+            RoomsResponse<{ members: UsersResponse<UsersRecord>[] }>
+        >(1, 5, {
             expand: "members",
             filter: pb.filter("status = {:status}", { status: "open" }),
         });
-    const rooms: RoomDTO[] = [];
 
-    for (const r of res.items) {
-        rooms.push(toRoomDTO(r));
-    }
-
-    return rooms;
+    return res;
 };
 
 export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
@@ -54,29 +48,17 @@ export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
     return res;
 };
 
-export type RoomWithVotesDTO = RoomDTO & {
-    votes: VotesRecord[];
+export const joinRoom = async (
+    userId: string,
+    pb: TypedPocketBase,
+    roomId: string
+) => {
+    await Promise.allSettled([
+        pb.collection("rooms").update(roomId, { "members+": userId }),
+        pb.collection("users").update(userId, { "rooms+": roomId }),
+    ]);
 };
 
-export type RoomDTO = {
-    id: string;
-    name: string;
-    status: RoomsStatusOptions;
-    members: UsersRecord[];
-    stories: string[];
+export const isJoined = (userId: string, room: RoomsResponse) => {
+    return room.members.includes(userId);
 };
-
-function toRoomDTO(room: RoomsResponse<RoomsRecord>): RoomDTO {
-    const {
-        expand: { members },
-    } = room as {
-        expand: { members: UsersRecord[] };
-    };
-    return {
-        id: room.id,
-        name: room.name,
-        status: room.status,
-        members,
-        stories: room.stories,
-    };
-}
