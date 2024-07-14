@@ -1,4 +1,4 @@
-import { joinRoom, roomQuery } from "@/api/rooms";
+import { isJoined, joinRoom, roomQuery, useSetActiveStory } from "@/api/rooms";
 import { useAddVote, useUpdateVote, votesQueryOptions } from "@/api/votes";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +19,11 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
+    CollectionResponses,
+    RoomsResponse,
+    StoriesRecord,
+    StoriesResponse,
     TypedPocketBase,
-    VotesRecord,
-    VotesResponse,
     VotesVoteOptions,
 } from "@/types/pocketbase-types";
 import {
@@ -48,17 +50,12 @@ function RoomComponent() {
         return votes.find((v) => v.user === userId) != undefined;
     };
 
-    const isJoined = (userId: string) => {
-        return room.members.includes(userId);
-    };
-
-    console.log(votes, "votes");
-
     const getUserVote = (userId: string) =>
         votes.find((v) => v.user === userId);
 
     const { mutate: addVote } = useAddVote(ctx.user?.id, ctx.queryClient);
     const { mutate: updateVote } = useUpdateVote(ctx.user?.id, ctx.queryClient);
+    const { setActive } = useSetActiveStory(room.id);
 
     const handleAddOrUpdate = (vote: string) => {
         if (hasVoted(ctx.user?.id)) {
@@ -82,20 +79,23 @@ function RoomComponent() {
         }
     };
 
-    const realTime = async (
+    const realTime = async <C extends keyof CollectionResponses>(
         pb: TypedPocketBase,
         queryClient: QueryClient,
-        queryKey: string[]
+        queryKey: string[],
+        collection: C
     ) => {
         return await pb
-            .collection("votes")
-            .subscribe<VotesResponse<VotesRecord>>("*", (d) => {
-                console.log(d.record, "realtime");
+            .collection(collection)
+            .subscribe<CollectionResponses[C]>("*", (d) => {
+                console.log("[REAL-TIME-CONNECTION]", d.record);
+
                 const { record } = d;
+
                 queryClient.setQueryData<
                     unknown,
                     string[],
-                    VotesResponse<VotesRecord>[]
+                    CollectionResponses[C][]
                 >(
                     queryKey,
                     (old) =>
@@ -107,16 +107,59 @@ function RoomComponent() {
             });
     };
 
-    const unsub = async () => await ctx.pb.collection("votes").unsubscribe("*");
+    const realTimeRoom = async (
+        pb: TypedPocketBase,
+        queryClient: QueryClient,
+        queryKey: string[]
+    ) => {
+        return await pb
+            .collection("rooms")
+            .subscribe<
+                RoomsResponse<{ activeStory: StoriesResponse<StoriesRecord> }>
+            >("*", (d) => {
+                console.log("[REAL-TIME-CONNECTION]", d.record);
+
+                const { record } = d;
+                const newActiveStory = room.expand?.stories.find(
+                    (s) => s.id === record.activeStory
+                );
+
+                if (!newActiveStory) throw new Error("error updating story");
+
+                queryClient.setQueryData<
+                    unknown,
+                    string[],
+                    RoomsResponse<{
+                        activeStory: StoriesResponse<StoriesRecord>;
+                    }>
+                >(
+                    queryKey,
+                    (old) =>
+                        old && {
+                            ...old,
+                            expand: {
+                                ...old.expand,
+                                activeStory: newActiveStory,
+                            },
+                        }
+                );
+            });
+    };
+
+    const unsub = async () => {
+        await ctx.pb.collection("votes").unsubscribe("*");
+        await ctx.pb.collection("rooms").unsubscribe("*");
+    };
 
     useEffect(() => {
-        realTime(ctx.pb, ctx.queryClient, ["votes", room.id]);
+        realTime(ctx.pb, ctx.queryClient, ["votes", room.id], "votes");
+        realTimeRoom(ctx.pb, ctx.queryClient, ["rooms", room.id]);
         return () => {
             unsub();
         };
     }, []);
 
-    if (!isJoined(ctx.user?.id)) {
+    if (!isJoined(ctx.user?.id, room)) {
         return <JoinRoomDialog roomId={room.id} />;
     }
 
@@ -127,6 +170,7 @@ function RoomComponent() {
                     {Object.entries(VotesVoteOptions).map(([_k, v]) => (
                         <li key={v + _k}>
                             <Button
+                                disabled={!room.activeStory}
                                 onClick={() => handleAddOrUpdate(v)}
                                 className="text-3xl"
                                 size="card"
@@ -140,7 +184,7 @@ function RoomComponent() {
                 <div>
                     <h2 className="text-2xl font-semibold">Reviewing</h2>
                     <p className="text-xl">
-                        {room.expand?.activeStory?.title ?? ""}
+                        {room.expand?.activeStory.title ?? ""}
                     </p>
                 </div>
                 <ul className="flex">
@@ -169,7 +213,14 @@ function RoomComponent() {
                             key={story.id}
                         >
                             {story.title}
-                            <Button variant="ghost">Start</Button>
+                            <Button
+                                onClick={() =>
+                                    setActive({ pb: ctx.pb, storyId: story.id })
+                                }
+                                variant="ghost"
+                            >
+                                Start
+                            </Button>
                         </li>
                     ))}
                 </ul>

@@ -7,7 +7,8 @@ import {
     UsersResponse,
     VotesResponse,
 } from "@/types/pocketbase-types";
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, useMutation } from "@tanstack/react-query";
+import { createExtendedRoute } from "./utils";
 
 export const roomQuery = (id: string, pb: TypedPocketBase) =>
     queryOptions({
@@ -48,15 +49,38 @@ export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
     return res;
 };
 
+export const useSetActiveStory = (roomId: string) => {
+    const { mutate: setActive, ...rest } = useMutation({
+        mutationKey: ["rooms", "set-active-story", roomId],
+        mutationFn: ({pb, storyId}:{pb: TypedPocketBase, storyId: string}) =>
+            setActiveStory(roomId, storyId, pb),
+    });
+    return {
+        setActive,
+        ...rest,
+    };
+};
+
 export const joinRoom = async (
     userId: string,
     pb: TypedPocketBase,
     roomId: string
 ) => {
-    await Promise.allSettled([
-        pb.collection("rooms").update(roomId, { "members+": userId }),
-        pb.collection("users").update(userId, { "rooms+": roomId }),
-    ]);
+    const url = createExtendedRoute("/api/ext/rooms/:room/join/:user", {
+        user: userId,
+        room: roomId,
+    });
+    return await pb.send(url, {
+        method: "POST",
+    });
+};
+
+export const setActiveStory = async (
+    roomId: string,
+    storyId: string,
+    pb: TypedPocketBase
+) => {
+    await pb.collection("rooms").update(roomId, { activeStory: storyId });
 };
 
 export const isJoined = (userId: string, room: RoomsResponse) => {

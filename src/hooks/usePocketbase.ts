@@ -10,7 +10,7 @@ import { useInterval } from "usehooks-ts";
 import ms from "ms";
 
 const fiveMinutesInMs = ms("5 minutes");
-const twoMinutesInMs = ms("1 minutes");
+const twoMinutesInMs = ms("2 minutes");
 
 export const usePocketbase = () => {
     const pb = useMemo(
@@ -50,7 +50,7 @@ export const usePocketbase = () => {
 
     const refreshSession = useCallback(async () => {
         if (!pb.authStore.isValid) return;
-        const decoded = jwtDecode(token);
+        const decoded: { exp: number } = jwtDecode(token);
         const tokenExpiration = decoded.exp;
         const expirationWithBuffer = (decoded.exp! + fiveMinutesInMs) / 1000;
         if (tokenExpiration! < expirationWithBuffer) {

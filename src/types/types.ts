@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export const Routes = {
     CreateRoomWithStories: "/api/ext/rooms",
+    JoinRoom: "/api/ext/rooms/:room/join/:user",
 } as const;
 
 export type RouteStrings = (typeof Routes)[keyof typeof Routes];
