@@ -1,4 +1,4 @@
-import { isJoined, joinRoom, roomQuery, useSetActiveStory } from "@/api/rooms";
+import { joinRoom, roomQuery, useSetActiveStory, utils } from "@/api/rooms";
 import { useAddVote, useUpdateVote, votesQueryOptions } from "@/api/votes";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { Badge } from "@/components/ui/badge";
@@ -19,11 +19,12 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import {
-    CollectionResponses,
     RoomsResponse,
     StoriesRecord,
     StoriesResponse,
     TypedPocketBase,
+    VotesRecord,
+    VotesResponse,
     VotesVoteOptions,
 } from "@/types/pocketbase-types";
 import {
@@ -32,7 +33,7 @@ import {
     useSuspenseQuery,
 } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/rooms/$id")({
     component: RoomComponent,
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/rooms/$id")({
 function RoomComponent() {
     const { id } = Route.useParams();
     const ctx = Route.useRouteContext();
+    const [showResults, setShowResults] = useState(false);
     const { data: room } = useSuspenseQuery(roomQuery(id, ctx.pb));
     const { data: votes } = useSuspenseQuery(
         votesQueryOptions(ctx.pb, room.id)
@@ -79,23 +81,29 @@ function RoomComponent() {
         }
     };
 
-    const realTime = async <C extends keyof CollectionResponses>(
+    const realTimeVotes = async (
         pb: TypedPocketBase,
         queryClient: QueryClient,
-        queryKey: string[],
-        collection: C
+        queryKey: string[]
     ) => {
         return await pb
-            .collection(collection)
-            .subscribe<CollectionResponses[C]>("*", (d) => {
-                console.log("[REAL-TIME-CONNECTION]", d.record);
+            .collection("votes")
+            .subscribe<VotesResponse<VotesRecord>>("*", (d) => {
+                console.log("[REAL-TIME-CONNECTION][VOTES]", d.record);
 
                 const { record } = d;
+
+                const filteredVotes = votes.filter((v) => v.id !== record.id);
+                const isReady = utils.isReadyForResults(
+                    room.members,
+                    filteredVotes
+                );
+                setShowResults(isReady);
 
                 queryClient.setQueryData<
                     unknown,
                     string[],
-                    CollectionResponses[C][]
+                    VotesResponse<VotesRecord>[]
                 >(
                     queryKey,
                     (old) =>
@@ -117,7 +125,7 @@ function RoomComponent() {
             .subscribe<
                 RoomsResponse<{ activeStory: StoriesResponse<StoriesRecord> }>
             >("*", (d) => {
-                console.log("[REAL-TIME-CONNECTION]", d.record);
+                console.log("[REAL-TIME-CONNECTION][ROOMS]", d.record);
 
                 const { record } = d;
                 const newActiveStory = room.expand?.stories.find(
@@ -152,14 +160,24 @@ function RoomComponent() {
     };
 
     useEffect(() => {
-        realTime(ctx.pb, ctx.queryClient, ["votes", room.id], "votes");
+        realTimeVotes(ctx.pb, ctx.queryClient, ["votes", room.id]);
         realTimeRoom(ctx.pb, ctx.queryClient, ["rooms", room.id]);
         return () => {
             unsub();
         };
     }, []);
 
-    if (!isJoined(ctx.user?.id, room)) {
+    useEffect(() => {
+        const isReady = utils.isReadyForResults(room.members, votes);
+        console.log(isReady);
+        setShowResults(isReady);
+    }, [votes]);
+
+    const activeStoryVotes = votes.filter(
+        (story) => story.story === room.activeStory
+    );
+
+    if (!utils.isJoined(ctx.user?.id, room)) {
         return <JoinRoomDialog roomId={room.id} />;
     }
 
@@ -183,9 +201,22 @@ function RoomComponent() {
                 </ul>
                 <div>
                     <h2 className="text-2xl font-semibold">Reviewing</h2>
-                    <p className="text-xl">
-                        {room.expand?.activeStory.title ?? ""}
-                    </p>
+                    <div className="flex items-center gap-4">
+                        <p className="text-xl">
+                            {room.expand?.activeStory.title ?? ""}
+                        </p>
+                        <Button
+                            disabled={!showResults}
+                            onClick={() => {
+                                console.log(
+                                    "votes for the active story",
+                                    activeStoryVotes
+                                );
+                            }}
+                        >
+                            Reveal
+                        </Button>
+                    </div>
                 </div>
                 <ul className="flex">
                     {votes &&

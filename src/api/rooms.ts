@@ -5,6 +5,7 @@ import {
     TypedPocketBase,
     UsersRecord,
     UsersResponse,
+    VotesRecord,
     VotesResponse,
 } from "@/types/pocketbase-types";
 import { queryOptions, useMutation } from "@tanstack/react-query";
@@ -52,8 +53,13 @@ export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
 export const useSetActiveStory = (roomId: string) => {
     const { mutate: setActive, ...rest } = useMutation({
         mutationKey: ["rooms", "set-active-story", roomId],
-        mutationFn: ({pb, storyId}:{pb: TypedPocketBase, storyId: string}) =>
-            setActiveStory(roomId, storyId, pb),
+        mutationFn: ({
+            pb,
+            storyId,
+        }: {
+            pb: TypedPocketBase;
+            storyId: string;
+        }) => setActiveStory(roomId, storyId, pb),
     });
     return {
         setActive,
@@ -83,6 +89,27 @@ export const setActiveStory = async (
     await pb.collection("rooms").update(roomId, { activeStory: storyId });
 };
 
-export const isJoined = (userId: string, room: RoomsResponse) => {
-    return room.members.includes(userId);
+export const utils = {
+    isJoined: (userId: string, room: RoomsResponse) =>
+        room.members.includes(userId),
+    isReadyForResults: (
+        roomMembers: string[],
+        votes: VotesResponse<VotesRecord>[]
+    ) => {
+        const voterIds = new Set(votes.map((v) => v.user));
+        console.log(voterIds, "the voter ids");
+        if (roomMembers.length !== voterIds.size) {
+            console.log("length check not ok");
+            console.log(voterIds.size);
+            console.log(roomMembers.length);
+            return false;
+        }
+        console.log("length ok");
+
+        for (const mem of roomMembers) {
+            if (!voterIds.has(mem)) return false;
+        }
+
+        return true;
+    },
 };

@@ -1,4 +1,4 @@
-import { isJoined, roomsQuery } from "@/api/rooms";
+import { utils, roomsQuery } from "@/api/rooms";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -82,10 +82,10 @@ export const RoomCard = ({
             <CardFooter>
                 <Button
                     asChild
-                    variant={isJoined(userId, room) ? "outline" : "default"}
+                    variant={utils.isJoined(userId, room) ? "outline" : "default"}
                 >
                     <Link to="/rooms/$id" params={{ id: room.id }}>
-                        {isJoined(userId, room) ? "Open" : "Join Now"}
+                        {utils.isJoined(userId, room) ? "Open" : "Join Now"}
                     </Link>
                 </Button>
             </CardFooter>
