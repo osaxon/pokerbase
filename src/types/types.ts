@@ -2,6 +2,7 @@
 export const Routes = {
     CreateRoomWithStories: "/api/ext/rooms",
     JoinRoom: "/api/ext/rooms/:room/join/:user",
+    JoinSquad: "/api/ext/squads/:squad/join/:user",
 } as const;
 
 export type RouteStrings = (typeof Routes)[keyof typeof Routes];

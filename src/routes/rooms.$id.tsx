@@ -3,6 +3,9 @@ import { useAddVote, useUpdateVote, votesQueryOptions } from "@/api/votes";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import {
     Dialog,
     DialogContent,
@@ -27,15 +30,26 @@ import {
     VotesResponse,
     VotesVoteOptions,
 } from "@/types/pocketbase-types";
+import { LockClosedIcon, LockOpen1Icon } from "@radix-ui/react-icons";
 import {
     QueryClient,
     useMutation,
     useSuspenseQuery,
 } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/rooms/$id")({
+    beforeLoad: async ({ context }) => {
+        if (!context.token) {
+            throw redirect({
+                to: "/sign-in",
+                search: {
+                    redirect: location.href,
+                },
+            });
+        }
+    },
     component: RoomComponent,
 });
 
@@ -63,7 +77,7 @@ function RoomComponent() {
         if (hasVoted(ctx.user?.id)) {
             const voteId = getUserVote(ctx.user?.id)?.id;
             if (!voteId) throw new Error("invalid vote id");
-            console.log(voteId, "the vote id");
+
             updateVote({
                 voteId: voteId,
                 pb: ctx.pb,
@@ -93,11 +107,16 @@ function RoomComponent() {
 
                 const { record } = d;
 
-                const filteredVotes = votes.filter((v) => v.id !== record.id);
+                const updatedVotes = [
+                    ...votes.filter((v) => v.id !== record.id),
+                    record,
+                ];
+
                 const isReady = utils.isReadyForResults(
                     room.members,
-                    filteredVotes
+                    updatedVotes
                 );
+
                 setShowResults(isReady);
 
                 queryClient.setQueryData<
@@ -173,10 +192,6 @@ function RoomComponent() {
         setShowResults(isReady);
     }, [votes]);
 
-    const activeStoryVotes = votes.filter(
-        (story) => story.story === room.activeStory
-    );
-
     if (!utils.isJoined(ctx.user?.id, room)) {
         return <JoinRoomDialog roomId={room.id} />;
     }
@@ -184,40 +199,74 @@ function RoomComponent() {
     return (
         <div className="max-w-5xl mx-auto min-h-screen space-y-8 p-10">
             <div className="space-y-6">
-                <ul className="flex gap-4 justify-center flex-wrap max-w-sm mx-auto">
-                    {Object.entries(VotesVoteOptions).map(([_k, v]) => (
-                        <li key={v + _k}>
-                            <Button
-                                disabled={!room.activeStory}
-                                onClick={() => handleAddOrUpdate(v)}
-                                className="text-3xl"
-                                size="card"
-                                variant="outline"
-                            >
-                                {v}
-                            </Button>
-                        </li>
-                    ))}
-                </ul>
-                <div>
-                    <h2 className="text-2xl font-semibold">Reviewing</h2>
-                    <div className="flex items-center gap-4">
-                        <p className="text-xl">
-                            {room.expand?.activeStory.title ?? ""}
-                        </p>
-                        <Button
-                            disabled={!showResults}
-                            onClick={() => {
-                                console.log(
-                                    "votes for the active story",
-                                    activeStoryVotes
-                                );
-                            }}
-                        >
-                            Reveal
-                        </Button>
-                    </div>
-                </div>
+                <Tabs defaultValue="vote">
+                    <TabsList>
+                        <TabsTrigger value="vote">Vote</TabsTrigger>
+                        <TabsTrigger disabled={!showResults} value="results">
+                            {showResults ? (
+                                <LockOpen1Icon />
+                            ) : (
+                                <LockClosedIcon />
+                            )}
+
+                            <span className="ml-1">Results</span>
+                        </TabsTrigger>
+                    </TabsList>
+                    <TabsContent className="space-y-6" value="vote">
+                        <Card>
+                            <CardContent className="pt-6">
+                                <ul className="flex gap-4 justify-center mx-auto flex-wrap max-w-sm">
+                                    {Object.entries(VotesVoteOptions).map(
+                                        ([_k, v]) => (
+                                            <li key={v + _k}>
+                                                <Button
+                                                    disabled={!room.activeStory}
+                                                    onClick={() =>
+                                                        handleAddOrUpdate(v)
+                                                    }
+                                                    className="text-3xl"
+                                                    size="card"
+                                                    variant="outline"
+                                                >
+                                                    {v}
+                                                </Button>
+                                            </li>
+                                        )
+                                    )}
+                                </ul>
+                            </CardContent>
+                        </Card>
+
+                        {!showResults && (
+                            <div>
+                                <h2 className="text-2xl font-semibold">
+                                    Reviewing
+                                </h2>
+                                <div className="flex items-center gap-4">
+                                    <p className="text-xl">
+                                        {room.expand?.activeStory.title ?? ""}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </TabsContent>
+                    <TabsContent value="results">
+                        <Card>
+                            <CardContent>
+                                <pre>
+                                    <code>
+                                        {JSON.stringify(
+                                            room.expand?.votes_via_room,
+                                            null,
+                                            2
+                                        )}
+                                    </code>
+                                </pre>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+
                 <ul className="flex">
                     {votes &&
                         room.expand?.members.map((mem) => (
@@ -235,56 +284,73 @@ function RoomComponent() {
                 </ul>
             </div>
 
-            <div className="space-y-4">
-                <h2 className="text-2xl font-semibold">Up Next</h2>
-                <ul className="space-y-2">
-                    {room.expand?.stories.map((story) => (
-                        <li
-                            className="border p-2 rounded shadow-sm flex items-center justify-between"
-                            key={story.id}
-                        >
-                            {story.title}
-                            <Button
-                                onClick={() =>
-                                    setActive({ pb: ctx.pb, storyId: story.id })
-                                }
-                                variant="ghost"
+            <Card>
+                <CardHeader>
+                    <CardTitle>Up Next</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <ul className="space-y-2">
+                        {room.expand?.stories.map((story) => (
+                            <li
+                                className="border p-2 rounded shadow-sm flex items-center justify-between"
+                                key={story.id}
                             >
-                                Start
-                            </Button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+                                {story.title}
+                                <Button
+                                    onClick={() =>
+                                        setActive({
+                                            pb: ctx.pb,
+                                            storyId: story.id,
+                                        })
+                                    }
+                                    variant="ghost"
+                                >
+                                    Start
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                </CardContent>
+            </Card>
             <div className="space-y-4">
-                <h2 className="text-2xl font-semibold">Estimated</h2>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[100px]">Story</TableHead>
-                            <TableHead className="text-right">Score</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {room.expand?.stories
-                            .filter((s) => s.voted)
-                            .map((story) => (
-                                <TableRow key={story.id}>
-                                    <TableCell className="font-medium w-full">
-                                        {story.title}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Badge
-                                            variant="outline"
-                                            className="text-md"
-                                        >
-                                            {story.points}
-                                        </Badge>
-                                    </TableCell>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Results</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[100px]">
+                                        Story
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        Score
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                    </TableBody>
-                </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {room.expand?.stories
+                                    .filter((s) => s.voted)
+                                    .map((story) => (
+                                        <TableRow key={story.id}>
+                                            <TableCell className="font-medium w-full">
+                                                {story.title}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Badge
+                                                    variant="outline"
+                                                    className="text-md"
+                                                >
+                                                    {story.points}
+                                                </Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

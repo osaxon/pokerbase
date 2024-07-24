@@ -1,6 +1,5 @@
-import { utils, roomsQuery } from "@/api/rooms";
+import { roomsQuery, utils } from "@/api/rooms";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -62,18 +61,16 @@ export const RoomCard = ({
                     </p>
                 )}
                 <ul className="flex">
-                    {room.expand?.members
-                        .slice(0, 2)
-                        .map((mem) => (
-                            <RoomMemberAvatar key={mem.name} member={mem} />
-                        ))}
-                    {room.members.length > 2 && (
+                    {room.expand?.members.map((mem) => (
+                        <RoomMemberAvatar key={mem.name} member={mem} />
+                    ))}
+                    {/* {room.members.length > 3 && (
                         <Avatar className="-ml-4 border">
                             <AvatarFallback className="text-muted-foreground">
                                 +{room.members.length - 2}
                             </AvatarFallback>
                         </Avatar>
-                    )}
+                    )} */}
                 </ul>
                 <p className="font-semibold">
                     {noStories} {noStories > 1 ? "stories" : "story"}
@@ -82,7 +79,9 @@ export const RoomCard = ({
             <CardFooter>
                 <Button
                     asChild
-                    variant={utils.isJoined(userId, room) ? "outline" : "default"}
+                    variant={
+                        utils.isJoined(userId, room) ? "outline" : "default"
+                    }
                 >
                     <Link to="/rooms/$id" params={{ id: room.id }}>
                         {utils.isJoined(userId, room) ? "Open" : "Join Now"}

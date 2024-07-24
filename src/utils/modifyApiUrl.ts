@@ -5,34 +5,6 @@ import {
     RoutesWithoutParams,
 } from "@/types/types";
 
-export function modifyUrl(url: string): string {
-    // Check if the url starts with "api/"
-    const prefix = `${import.meta.env.VITE_POCKET_BASE_URL}/api/`;
-    const insert = "ext/";
-
-    const urlString = url.toString();
-
-    if (urlString.startsWith(prefix)) {
-        // Insert "ext/" after "api/"
-        return urlString.replace(prefix, prefix + insert);
-    }
-
-    // If the URL does not start with "api/", return it unchanged
-    return url;
-}
-
-export async function fetchExtended(
-    url: URL | RequestInfo,
-    config: RequestInit | undefined
-): Promise<Response> {
-    const newUrl = modifyUrl(url.toString());
-    const res = await fetch(newUrl, config);
-    if (!res.ok) {
-        throw new Error(res.statusText);
-    }
-    return res.json();
-}
-
 // Function signature with conditional type for params requirement
 export function createExtendedRoute<T extends RoutesWithParams>(
     route: T,

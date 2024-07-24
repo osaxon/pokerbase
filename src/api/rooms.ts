@@ -97,14 +97,9 @@ export const utils = {
         votes: VotesResponse<VotesRecord>[]
     ) => {
         const voterIds = new Set(votes.map((v) => v.user));
-        console.log(voterIds, "the voter ids");
         if (roomMembers.length !== voterIds.size) {
-            console.log("length check not ok");
-            console.log(voterIds.size);
-            console.log(roomMembers.length);
             return false;
         }
-        console.log("length ok");
 
         for (const mem of roomMembers) {
             if (!voterIds.has(mem)) return false;

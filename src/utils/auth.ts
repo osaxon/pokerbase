@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
+import { redirect } from "@tanstack/react-router";
 import { RecordAuthResponse } from "pocketbase";
 import {
     TypedPocketBase,
@@ -9,6 +10,8 @@ import {
 } from "@/types/pocketbase-types";
 import { MyRouter } from "@/App";
 import { toast } from "sonner";
+import { ParsedLocation } from "@tanstack/react-router";
+import { MyRouterContext } from "@/routes/__root";
 
 export const loginError = {
     type: "manual",
@@ -44,3 +47,34 @@ export const useLogin = (router: MyRouter, pb: TypedPocketBase) =>
             toast.error(err.message);
         },
     });
+
+export const usePasswordReset = (pb: TypedPocketBase) => {
+    const { mutate: pwReset, ...rest } = useMutation({
+        mutationKey: ["pw-reset"],
+        mutationFn: async (email: string) => {
+            return await pb.collection("users").requestPasswordReset(email);
+        },
+    });
+    return {
+        pwReset,
+        ...rest,
+    };
+};
+
+export const protectedRoute = ({
+    location,
+    context,
+}: {
+    location: ParsedLocation;
+    context: MyRouterContext;
+}) => {
+    console.log("protected route");
+    if (!context.pb.authStore.isValid) {
+        throw redirect({
+            to: "/sign-in",
+            search: {
+                redirect: location.href,
+            },
+        });
+    }
+};

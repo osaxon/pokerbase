@@ -15,12 +15,14 @@ import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { AuthModel } from "pocketbase";
 import { Suspense } from "react";
 
-export const Route = createRootRouteWithContext<{
+export type MyRouterContext = {
     queryClient: QueryClient;
     token: string;
     user: AuthModel | undefined;
     pb: TypedPocketBase;
-}>()({
+};
+
+export const Route = createRootRouteWithContext<MyRouterContext>()({
     pendingMs: 3000,
     component: RootComponent,
     errorComponent: Error,
@@ -37,7 +39,6 @@ function RootComponent() {
     return (
         <>
             <div className="p-2 flex gap-2 text-lg">
-                {/* Show a global spinner when the router is transitioning */}
                 <div className="flex items-center justify-between w-full">
                     <nav className="flex items-center gap-6">
                         <Link
@@ -51,21 +52,24 @@ function RootComponent() {
                     </nav>
                     <div>
                         {context.pb.authStore.isValid ? (
-                            <div className="flex items-center gap-8 w-full">
+                            <div className="flex items-center gap-6 w-full">
+                                <Button variant="outline">Dashboard</Button>
+
                                 <Suspense fallback={<>...</>}>
                                     <UserAvatar />
                                 </Suspense>
-                                <Button asChild>Rooms</Button>
                             </div>
                         ) : (
-                            <Link
-                                to="/sign-in"
-                                activeProps={{
-                                    className: "font-bold underline",
-                                }}
-                            >
-                                Sign In
-                            </Link>
+                            <Button asChild>
+                                <Link
+                                    to="/sign-in"
+                                    activeProps={{
+                                        className: "font-bold underline",
+                                    }}
+                                >
+                                    Sign In
+                                </Link>
+                            </Button>
                         )}
                     </div>
                 </div>

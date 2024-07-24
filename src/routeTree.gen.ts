@@ -13,7 +13,9 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignInImport } from './routes/sign-in'
 import { Route as IndexImport } from './routes/index'
+import { Route as SquadsIndexImport } from './routes/squads.index'
 import { Route as DashboardIndexImport } from './routes/dashboard.index'
+import { Route as AccountIndexImport } from './routes/account.index'
 import { Route as RoomsNewImport } from './routes/rooms.new'
 import { Route as RoomsIdImport } from './routes/rooms.$id'
 
@@ -29,8 +31,18 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const SquadsIndexRoute = SquadsIndexImport.update({
+  path: '/squads/',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const DashboardIndexRoute = DashboardIndexImport.update({
   path: '/dashboard/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AccountIndexRoute = AccountIndexImport.update({
+  path: '/account/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -76,11 +88,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoomsNewImport
       parentRoute: typeof rootRoute
     }
+    '/account/': {
+      id: '/account/'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/dashboard/': {
       id: '/dashboard/'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardIndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/squads/': {
+      id: '/squads/'
+      path: '/squads'
+      fullPath: '/squads'
+      preLoaderRoute: typeof SquadsIndexImport
       parentRoute: typeof rootRoute
     }
   }
@@ -93,7 +119,9 @@ export const routeTree = rootRoute.addChildren({
   SignInRoute,
   RoomsIdRoute,
   RoomsNewRoute,
+  AccountIndexRoute,
   DashboardIndexRoute,
+  SquadsIndexRoute,
 })
 
 /* prettier-ignore-end */
@@ -108,7 +136,9 @@ export const routeTree = rootRoute.addChildren({
         "/sign-in",
         "/rooms/$id",
         "/rooms/new",
-        "/dashboard/"
+        "/account/",
+        "/dashboard/",
+        "/squads/"
       ]
     },
     "/": {
@@ -123,8 +153,14 @@ export const routeTree = rootRoute.addChildren({
     "/rooms/new": {
       "filePath": "rooms.new.tsx"
     },
+    "/account/": {
+      "filePath": "account.index.tsx"
+    },
     "/dashboard/": {
       "filePath": "dashboard.index.tsx"
+    },
+    "/squads/": {
+      "filePath": "squads.index.tsx"
     }
   }
 }
