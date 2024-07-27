@@ -17,7 +17,7 @@ export function RoomMemberAvatar({
     return (
         <HoverCard>
             <HoverCardTrigger className="first:ml-0 -ml-3">
-                <Avatar className=" cursor-default">
+                <Avatar className="cursor-default">
                     <AvatarImage src={member.avatar} />
                     <AvatarFallback
                         className={cn(voted ? "bg-green-300/75" : "")}
@@ -34,7 +34,7 @@ export function RoomMemberAvatar({
                             {member.name?.slice(0, 2)}
                         </AvatarFallback>
                     </Avatar>
-                    <h4 className="text-xl">{member.name}</h4>
+                    <h4 className="text-lg">{member.name}</h4>
                 </div>
             </HoverCardContent>
         </HoverCard>

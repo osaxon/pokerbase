@@ -1,19 +1,23 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Link, RouterProvider, createRouter } from "@tanstack/react-router";
-import { usePocketbase } from "./hooks/usePocketbase";
+import { Suspense } from "react";
+import { useTypedPocketBase } from "./hooks/useTypedPocketBase";
 import "./index.css";
-import { pb } from "./lib/pocketbase";
+import { createTypedPB } from "./lib/pocketbase";
 import { routeTree } from "./routeTree.gen";
 
 const queryClient = new QueryClient();
+const pb = createTypedPB();
 
 const router = createRouter({
     routeTree,
     defaultPreload: "intent",
     context: {
+        auth: {
+            token: "",
+            user: pb.authStore.model,
+        },
         queryClient,
-        token: "",
-        user: undefined,
         pb: pb,
     },
     defaultNotFoundComponent: () => {
@@ -35,19 +39,24 @@ declare module "@tanstack/react-router" {
 }
 
 export default function App() {
-    const { user, token, pb } = usePocketbase();
+    const { pb, auth } = useTypedPocketBase();
+    const user = pb.authStore.model;
 
     return (
         <QueryClientProvider client={queryClient}>
-            <RouterProvider
-                router={router}
-                context={{
-                    user,
-                    token,
-                    queryClient,
-                    pb,
-                }}
-            />
+            <Suspense fallback={<>loading</>}>
+                <RouterProvider
+                    router={router}
+                    context={{
+                        auth: {
+                            ...auth,
+                            user,
+                        },
+                        queryClient,
+                        pb,
+                    }}
+                />
+            </Suspense>
         </QueryClientProvider>
     );
 }

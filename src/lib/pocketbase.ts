@@ -1,6 +1,5 @@
-import { TypedPocketBase } from "../types/pocketbase-types";
-import PocketBase from "pocketbase";
+import { Schema } from "@/types/database";
+import { TypedPocketBase } from "typed-pocketbase";
 
-export const pb = new PocketBase(
-    import.meta.env.VITE_POCKET_BASE_URL
-) as TypedPocketBase;
+export const createTypedPB = () =>
+    new TypedPocketBase<Schema>(import.meta.env.VITE_POCKET_BASE_URL);

@@ -2,7 +2,6 @@ import type { TypedPocketBase } from "@/types/pocketbase-types";
 import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
 import { createExtendedRoute } from "./utils";
 import { MyRouter } from "@/App";
-import { Dispatch, SetStateAction } from "react";
 
 export const squadQuery = (pb: TypedPocketBase) =>
     queryOptions({
@@ -18,7 +17,7 @@ export const useSetSquad = (
     pb: TypedPocketBase,
     router: MyRouter,
     queryClient: QueryClient,
-    cb: Dispatch<SetStateAction<boolean>>
+    cb: () => void
 ) =>
     useMutation({
         mutationKey: ["squads"],
@@ -41,8 +40,7 @@ export const useSetSquad = (
             });
         },
         onSettled: (data, error, vars) => {
-            router.invalidate();
             queryClient.invalidateQueries({ queryKey: ["user", vars.userId] });
-            cb(false);
+            cb();
         },
     });

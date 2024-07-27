@@ -11,11 +11,15 @@ export type UserWithSquad = UsersResponse<
     UsersRecord & { squad: SquadsResponse<SquadsRecord> }
 >;
 
-export const userQuery = (userId: string, pb: TypedPocketBase) =>
+export const userQuery = (
+    userId: string,
+    pb: TypedPocketBase,
+    enabled: boolean
+) =>
     queryOptions({
         queryKey: ["user", userId],
         queryFn: () => fetchUserById(userId, pb),
-        enabled: userId !== null || undefined,
+        enabled: enabled,
     });
 
 const fetchUserById = async (userId: string, pb: TypedPocketBase) => {

@@ -1,32 +1,19 @@
 import { useState, useMemo, useCallback } from "react";
-import PocketBase, { RecordAuthResponse } from "pocketbase";
-import {
-    TypedPocketBase,
-    UsersRecord,
-    UsersResponse,
-} from "@/types/pocketbase-types";
 import { jwtDecode } from "jwt-decode";
 import { useInterval } from "usehooks-ts";
 import ms from "ms";
+import { createTypedPB } from "@/lib/pocketbase";
 
 const fiveMinutesInMs = ms("5 minutes");
 const twoMinutesInMs = ms("2 minutes");
 
-export const usePocketbase = () => {
-    const pb = useMemo(
-        () =>
-            new PocketBase(
-                import.meta.env.VITE_POCKET_BASE_URL
-            ) as TypedPocketBase,
-        []
-    );
+export const useTypedPocketBase = () => {
+    const pb = useMemo(() => createTypedPB(), []);
     const [token, setToken] = useState(pb.authStore.token);
 
     async function updateToken() {
         try {
-            const response = await pb
-                .collection("users")
-                .authRefresh<RecordAuthResponse<UsersResponse<UsersRecord>>>();
+            const response = await pb.collection("users").authRefresh();
             return response;
         } catch (error) {
             // Not authorized

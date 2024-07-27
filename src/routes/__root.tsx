@@ -2,7 +2,8 @@ import UserAvatar from "@/components/UserAvatar";
 import SvgLogo from "@/components/svg-logo";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
-import type { TypedPocketBase } from "@/types/pocketbase-types";
+import { useAuthStore } from "@/stores/auth";
+import { Schema } from "@/types/database";
 import { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
@@ -14,12 +15,15 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { AuthModel } from "pocketbase";
 import { Suspense } from "react";
+import { TypedPocketBase } from "typed-pocketbase";
 
 export type MyRouterContext = {
+    auth: {
+        token: string;
+        user: AuthModel;
+    };
     queryClient: QueryClient;
-    token: string;
-    user: AuthModel | undefined;
-    pb: TypedPocketBase;
+    pb: TypedPocketBase<Schema>;
 };
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
@@ -29,12 +33,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 });
 
 function Error(data: ErrorComponentProps) {
-    console.log(data);
     return <>{data.error.message}</>;
 }
 
 function RootComponent() {
     const context = Route.useRouteContext();
+    const user = useAuthStore((state) => state);
+
+    console.log(user, "zustand state");
 
     return (
         <>

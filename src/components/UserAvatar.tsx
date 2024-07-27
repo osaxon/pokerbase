@@ -5,14 +5,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export default function UserAvatar() {
     const ctx = rootRoot.useRouteContext();
+
     const {
         data: { avatar, username },
         isError,
-    } = useSuspenseQuery(userQuery(ctx.user?.id, ctx.pb));
+    } = useSuspenseQuery(
+        userQuery(ctx.pb.authStore.model?.id, ctx.pb, ctx.pb.authStore.isValid)
+    );
 
+    if (!ctx.pb.authStore.isValid) return null;
     if (isError) return <>Error</>;
-
-    console.log(ctx.user);
 
     return (
         <Avatar>

@@ -39,30 +39,39 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/account/")({
     beforeLoad: protectedRoute,
-    loader: ({ context }) =>
-        Promise.allSettled([
-            context.queryClient.ensureQueryData(
-                userQuery(context.user?.id, context.pb)
-            ),
-            context.queryClient.ensureQueryData(squadQuery(context.pb)),
-        ]),
+    // loader: async ({ context }) => {
+    //     Promise.all([
+    //         context.queryClient.ensureQueryData(
+    //             userQuery(context.auth.user?.id, context.pb)
+    //         ),
+    //         context.queryClient.ensureQueryData(squadQuery(context.pb)),
+    //     ]);
+    // },
     component: AccountComponent,
 });
 
 function AccountComponent() {
     const ctx = Route.useRouteContext();
     const router = useRouter();
-    const { data } = useSuspenseQuery(userQuery(ctx.user?.id, ctx.pb));
+    const { data } = useSuspenseQuery(userQuery(ctx.auth.user?.id, ctx.pb));
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newSquad, setNewSquad] = useState("");
     const { data: squads } = useSuspenseQuery(squadQuery(ctx.pb));
+
+    const squadChangeCallback = () => {
+        ctx.auth.user = {
+            ...ctx.auth.user,
+            squad: newSquad,
+        };
+        setDialogOpen(false);
+    };
+
     const { mutate: setSquad } = useSetSquad(
         ctx.pb,
         router,
         ctx.queryClient,
-        setDialogOpen
+        squadChangeCallback
     );
-    console.log(squads);
 
     return (
         <div className="max-w-5xl mx-auto py-10 px-2">
@@ -90,6 +99,11 @@ function AccountComponent() {
                         <div className="p-6">
                             <p>Squad</p>
                             <p>{data.expand?.squad.name}</p>
+                            <p>{data.squad}</p>
+                            <div className="border">
+                                <p>Router ctx model</p>
+                                <p>{ctx.auth.user?.squad}</p>
+                            </div>
                             <DrawerDialog
                                 open={dialogOpen}
                                 onOpenChange={setDialogOpen}
@@ -108,6 +122,7 @@ function AccountComponent() {
                                         <SelectContent>
                                             {squads.map((s) => (
                                                 <SelectItem
+                                                    key={s.id}
                                                     disabled={data.squad.includes(
                                                         s.id
                                                     )}
@@ -121,7 +136,7 @@ function AccountComponent() {
                                     <Button
                                         onClick={() =>
                                             setSquad({
-                                                userId: ctx.user?.id,
+                                                userId: ctx.auth.user?.id,
                                                 squadId: newSquad,
                                             })
                                         }
@@ -132,6 +147,9 @@ function AccountComponent() {
                             </DrawerDialog>
                         </div>
                     </div>
+                    <pre>
+                        <code>{JSON.stringify(ctx.auth.user, null, 2)}</code>
+                    </pre>
                 </CardContent>
             </Card>
         </div>
@@ -149,7 +167,6 @@ const UserAccountForm = ({ data }: { data: UserWithSquad }) => {
         },
     });
     const [editMode, setEditMode] = useState(false);
-    console.log(form);
     return (
         <div className="col-span-2">
             <Form {...form}>

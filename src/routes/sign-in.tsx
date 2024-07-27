@@ -36,16 +36,6 @@ const loginSchema = z.object({
 
 export const Route = createFileRoute("/sign-in")({
     validateSearch: (search) => validSearchParms.parse(search),
-    // beforeLoad: ({ context }) => {
-    //     if (context.user) {
-    //         throw redirect({
-    //             to: `/dashboard/$userId`,
-    //             params: {
-    //                 userId: context.user?.id,
-    //             },
-    //         });
-    //     }
-    // },
 }).update({
     component: SignInComponent,
 });
@@ -53,8 +43,9 @@ export const Route = createFileRoute("/sign-in")({
 function SignInComponent() {
     const router = useRouter();
     const { isValid } = Route.useRouteContext({
-        select: ({ token, pb }) => ({ isValid: token, pb }),
+        select: ({ auth: { token }, pb }) => ({ isValid: token, pb }),
     });
+    const ctx = Route.useRouteContext();
     const search = Route.useSearch();
 
     const form = useForm<z.infer<typeof loginSchema>>({
@@ -68,7 +59,8 @@ function SignInComponent() {
     const pb = Route.useRouteContext({ select: ({ pb }) => pb });
 
     const { mutate: login, isError } = useLogin(router, pb);
-    const { mutate: OAuth } = useOAuth();
+
+    const { mutateAsync: OAuth } = useOAuth();
     const { pwReset } = usePasswordReset(pb);
 
     const onSubmit = async (formData: z.infer<typeof loginSchema>) => {
@@ -82,7 +74,8 @@ function SignInComponent() {
 
     const OAuthLogin = async () => {
         toast.success("oauth login");
-        const data = await OAuth({ provider: "github", pb });
+        const data = OAuth({ provider: "github", pb });
+        ctx.auth.user = { ...data };
         console.log(data);
     };
 
@@ -152,6 +145,16 @@ function SignInComponent() {
                                 </Button>
                                 <Button className="w-full" type="submit">
                                     Sign In
+                                </Button>
+                                <Button
+                                    onClick={async () => {
+                                        pb.authStore.clear();
+                                        router.navigate({ to: "/" });
+                                    }}
+                                    className="w-full"
+                                    type="button"
+                                >
+                                    Sign out
                                 </Button>
                             </div>
                         </form>

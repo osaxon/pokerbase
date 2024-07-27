@@ -50,6 +50,8 @@ export const Route = createFileRoute("/rooms/$id")({
             });
         }
     },
+    loader: async ({ context, params }) =>
+        context.queryClient.ensureQueryData(roomQuery(params.id, context.pb)),
     component: RoomComponent,
 });
 
@@ -188,7 +190,6 @@ function RoomComponent() {
 
     useEffect(() => {
         const isReady = utils.isReadyForResults(room.members, votes);
-        console.log(isReady);
         setShowResults(isReady);
     }, [votes]);
 
@@ -196,9 +197,29 @@ function RoomComponent() {
         return <JoinRoomDialog roomId={room.id} />;
     }
 
+    if (room.squad !== ctx.user?.squad) {
+        return <>wrong squad</>;
+    }
+
     return (
         <div className="max-w-5xl mx-auto min-h-screen space-y-8 p-10">
-            <div className="space-y-6">
+            <div className="space-y-4">
+                <Button onClick={() => ctx.updateToken()}>Update token</Button>
+                <ul className="flex">
+                    {votes &&
+                        room.expand?.members &&
+                        room.expand.members.map((mem) => (
+                            <li
+                                className="first:-ml-0 -ml-3 flex flex-col items-center"
+                                key={mem.id}
+                            >
+                                <RoomMemberAvatar
+                                    voted={hasVoted(mem.id)}
+                                    member={mem}
+                                />
+                            </li>
+                        ))}
+                </ul>
                 <Tabs defaultValue="vote">
                     <TabsList>
                         <TabsTrigger value="vote">Vote</TabsTrigger>
@@ -237,18 +258,16 @@ function RoomComponent() {
                             </CardContent>
                         </Card>
 
-                        {!showResults && (
-                            <div>
-                                <h2 className="text-2xl font-semibold">
-                                    Reviewing
-                                </h2>
-                                <div className="flex items-center gap-4">
-                                    <p className="text-xl">
-                                        {room.expand?.activeStory.title ?? ""}
-                                    </p>
-                                </div>
+                        <div>
+                            <h2 className="text-2xl font-semibold">
+                                Reviewing
+                            </h2>
+                            <div className="flex items-center gap-4">
+                                <p className="text-xl">
+                                    {room.expand?.activeStory.title ?? ""}
+                                </p>
                             </div>
-                        )}
+                        </div>
                     </TabsContent>
                     <TabsContent value="results">
                         <Card>
@@ -266,22 +285,6 @@ function RoomComponent() {
                         </Card>
                     </TabsContent>
                 </Tabs>
-
-                <ul className="flex">
-                    {votes &&
-                        room.expand?.members.map((mem) => (
-                            <li
-                                className="first:-ml-0 -ml-3 flex flex-col items-center"
-                                key={mem.id}
-                            >
-                                <RoomMemberAvatar
-                                    voted={hasVoted(mem.id)}
-                                    member={mem}
-                                />
-                                {votes.find((v) => v.user === mem.id)?.vote}
-                            </li>
-                        ))}
-                </ul>
             </div>
 
             <Card>

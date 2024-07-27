@@ -18,6 +18,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
+    loader: async ({ context }) => {
+        if (!context.pb.authStore.isValid) {
+            return;
+        }
+    },
     component: Home,
 });
 
@@ -32,7 +37,11 @@ function Home() {
             </Button>
             <div className="grid @2xl:grid-cols-3 gap-4">
                 {rooms.items.map((room) => (
-                    <RoomCard key={room.id} room={room} userId={ctx.user?.id} />
+                    <RoomCard
+                        key={room.id}
+                        room={room}
+                        userId={ctx.auth.user?.id}
+                    />
                 ))}
             </div>
         </div>
