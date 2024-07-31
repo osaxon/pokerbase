@@ -1,26 +1,24 @@
-import { useState, useMemo, useCallback } from "react";
-import PocketBase, { RecordAuthResponse } from "pocketbase";
-import {
-    TypedPocketBase,
-    UsersRecord,
-    UsersResponse,
-} from "@/types/pocketbase-types";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { RecordAuthResponse } from "pocketbase";
+import { UsersRecord, UsersResponse } from "@/types/pocketbase-types";
 import { jwtDecode } from "jwt-decode";
 import { useInterval } from "usehooks-ts";
 import ms from "ms";
+import { createTypedPB } from "@/lib/pocketbase";
 
 const fiveMinutesInMs = ms("5 minutes");
 const twoMinutesInMs = ms("2 minutes");
 
 export const usePocketbase = () => {
-    const pb = useMemo(
-        () =>
-            new PocketBase(
-                import.meta.env.VITE_POCKET_BASE_URL
-            ) as TypedPocketBase,
-        []
-    );
+    const pb = useMemo(() => createTypedPB(), []);
     const [token, setToken] = useState(pb.authStore.token);
+
+    useEffect(() => {
+        const unsub = pb.authStore.onChange((token, model) => {
+            console.log("[auth store change]", { token, model });
+        });
+        return () => unsub();
+    }, []);
 
     async function updateToken() {
         try {

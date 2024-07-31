@@ -28,12 +28,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useRealtime } from "@/hooks/useRealtime";
+import { UsersResponse } from "@/types/pocketbase-types";
 import { UserSchemaWithSquad, userSchemaWithSquad } from "@/types/schemas";
 import { protectedRoute } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -53,10 +55,27 @@ export const Route = createFileRoute("/account/")({
 function AccountComponent() {
     const ctx = Route.useRouteContext();
     const router = useRouter();
-    const { data } = useSuspenseQuery(userQuery(ctx.auth.user?.id, ctx.pb));
+    const isValid = ctx.pb.authStore.isValid;
+    const { data } = useSuspenseQuery(
+        userQuery(ctx.auth.user?.id, ctx.pb, isValid)
+    );
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newSquad, setNewSquad] = useState("");
     const { data: squads } = useSuspenseQuery(squadQuery(ctx.pb));
+
+    const unsub = useRealtime("users", ctx.pb, (d) => {
+        console.log(d);
+        const { record } = d;
+        if (!record) return;
+        return ctx.queryClient.setQueryData<unknown, string[], UsersResponse>(
+            ["users"],
+            (old) => old && { ...record }
+        );
+    });
+
+    useEffect(() => {
+        return () => unsub();
+    }, []);
 
     const squadChangeCallback = () => {
         ctx.auth.user = {

@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Link, RouterProvider, createRouter } from "@tanstack/react-router";
 import { Suspense } from "react";
-import { useTypedPocketBase } from "./hooks/useTypedPocketBase";
+import { ThemeProvider } from "./components/theme-provider";
+import { usePocketbase } from "./hooks/usePocketbase";
 import "./index.css";
 import { createTypedPB } from "./lib/pocketbase";
 import { routeTree } from "./routeTree.gen";
@@ -12,6 +13,7 @@ const pb = createTypedPB();
 const router = createRouter({
     routeTree,
     defaultPreload: "intent",
+    defaultPreloadDelay: 100,
     context: {
         auth: {
             token: "",
@@ -39,24 +41,26 @@ declare module "@tanstack/react-router" {
 }
 
 export default function App() {
-    const { pb, auth } = useTypedPocketBase();
+    const { pb, auth } = usePocketbase();
     const user = pb.authStore.model;
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <Suspense fallback={<>loading</>}>
-                <RouterProvider
-                    router={router}
-                    context={{
-                        auth: {
-                            ...auth,
-                            user,
-                        },
-                        queryClient,
-                        pb,
-                    }}
-                />
-            </Suspense>
-        </QueryClientProvider>
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <QueryClientProvider client={queryClient}>
+                <Suspense fallback={<>loading</>}>
+                    <RouterProvider
+                        router={router}
+                        context={{
+                            auth: {
+                                ...auth,
+                                user,
+                            },
+                            queryClient,
+                            pb,
+                        }}
+                    />
+                </Suspense>
+            </QueryClientProvider>
+        </ThemeProvider>
     );
 }

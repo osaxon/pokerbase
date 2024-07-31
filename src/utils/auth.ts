@@ -68,7 +68,6 @@ export const protectedRoute = ({
     location: ParsedLocation;
     context: MyRouterContext;
 }) => {
-    console.log("protected route");
     if (!context.pb.authStore.isValid) {
         throw redirect({
             to: "/sign-in",

@@ -107,4 +107,57 @@ export const utils = {
 
         return true;
     },
+    getNotVoted: (
+        room: RoomsResponse<{
+            members: UsersResponse<UsersRecord>[];
+        }>,
+        votes: VotesResponse<VotesRecord>[],
+        activeStory: string
+    ) => {
+        if (!activeStory) return undefined;
+        if (!room.expand?.members) throw new Error("no members");
+
+        if (!votes) return;
+
+        if (room.members.length === votes.length) return undefined;
+
+        const notVoted = [];
+
+        for (const user of room.expand.members) {
+            console.log(votes.map((vote) => vote.id));
+            console.log(user.id);
+            if (
+                !votes
+                    .filter((v) => v.story === activeStory)
+                    .map((vote) => vote.user)
+                    .includes(user.id)
+            ) {
+                console.log("not in list");
+                notVoted.push({ user: user.name, id: user.id });
+            }
+        }
+
+        return notVoted;
+    },
+    getVoteStatusMessage: (notVoted: { user: string; id: string }[]) => {
+        if (notVoted === undefined) return "Waiting for votes...";
+        if (notVoted && notVoted.length >= 3)
+            return `Still waiting for ${notVoted.length} votes`;
+        if (notVoted && notVoted.length === 2)
+            return `Waiting for ${notVoted[0].user} and
+                        ${notVoted[1].user} to vote`;
+        return `Waiting for ${notVoted[0].user} to vote`;
+    },
+    getUserVote: (
+        userId: string,
+        votes: VotesResponse<VotesRecord>[],
+        activeStory: string
+    ) => votes.find((v) => v.user === userId && v.story === activeStory),
+    hasVoted: (
+        userId: string,
+        votes: VotesResponse<VotesRecord>[],
+        activeStory: string
+    ) =>
+        votes.find((v) => v.user === userId && v.story === activeStory) !=
+        undefined,
 };
