@@ -1,7 +1,6 @@
 import type { TypedPocketBase } from "@/types/pocketbase-types";
 import { QueryClient, queryOptions, useMutation } from "@tanstack/react-query";
 import { createExtendedRoute } from "./utils";
-import { MyRouter } from "@/App";
 
 export const squadQuery = (pb: TypedPocketBase) =>
     queryOptions({
@@ -15,7 +14,6 @@ const fetchSquads = async (pb: TypedPocketBase) => {
 
 export const useSetSquad = (
     pb: TypedPocketBase,
-    router: MyRouter,
     queryClient: QueryClient,
     cb: () => void
 ) =>
@@ -39,7 +37,7 @@ export const useSetSquad = (
                 method: "POST",
             });
         },
-        onSettled: (data, error, vars) => {
+        onSettled: (_data, _error, vars) => {
             queryClient.invalidateQueries({ queryKey: ["user", vars.userId] });
             cb();
         },

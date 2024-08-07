@@ -3,11 +3,10 @@ import { RecordAuthResponse } from "pocketbase";
 import { UsersRecord, UsersResponse } from "@/types/pocketbase-types";
 import { jwtDecode } from "jwt-decode";
 import { useInterval } from "usehooks-ts";
-import ms from "ms";
 import { createTypedPB } from "@/lib/pocketbase";
 
-const fiveMinutesInMs = ms("5 minutes");
-const twoMinutesInMs = ms("2 minutes");
+const fiveMinsInMs = 300000;
+const twoMinsInMs = 120000;
 
 export const usePocketbase = () => {
     const pb = useMemo(() => createTypedPB(), []);
@@ -20,7 +19,7 @@ export const usePocketbase = () => {
         return () => unsub();
     }, []);
 
-    async function updateToken() {
+    const updateToken = useCallback(async () => {
         try {
             const response = await pb
                 .collection("users")
@@ -32,20 +31,20 @@ export const usePocketbase = () => {
             setToken("");
             // clearUser();
         }
-    }
+    }, [pb]);
 
     const refreshSession = useCallback(async () => {
         if (!pb.authStore.isValid) return;
         const decoded: { exp: number } = jwtDecode(token);
         const tokenExpiration = decoded.exp;
-        const expirationWithBuffer = (decoded.exp! + fiveMinutesInMs) / 1000;
+        const expirationWithBuffer = (decoded.exp! + fiveMinsInMs) / 1000;
         if (tokenExpiration! < expirationWithBuffer) {
             console.log("refreshing token....");
             await updateToken();
         }
-    }, [pb, token]);
+    }, [pb, token, updateToken]);
 
-    useInterval(refreshSession, token ? twoMinutesInMs : null);
+    useInterval(refreshSession, token ? twoMinsInMs : null);
 
     return {
         auth: {
