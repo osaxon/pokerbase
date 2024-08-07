@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Link, RouterProvider, createRouter } from "@tanstack/react-router";
-import { Suspense } from "react";
 import { ThemeProvider } from "./components/theme-provider";
+import { Toaster } from "./components/ui/sonner";
 import { usePocketbase } from "./hooks/usePocketbase";
 import "./index.css";
 import { createTypedPB } from "./lib/pocketbase";
@@ -14,13 +15,11 @@ const router = createRouter({
     routeTree,
     defaultPreload: "intent",
     defaultPreloadDelay: 100,
+    defaultPreloadStaleTime: 0,
     context: {
-        auth: {
-            token: "",
-            user: pb.authStore.model,
-        },
         queryClient,
         pb: pb,
+        user: pb.authStore.model,
     },
     defaultNotFoundComponent: () => {
         return (
@@ -41,25 +40,22 @@ declare module "@tanstack/react-router" {
 }
 
 export default function App() {
-    const { pb, auth } = usePocketbase();
+    const { pb } = usePocketbase();
     const user = pb.authStore.model;
 
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
             <QueryClientProvider client={queryClient}>
-                <Suspense fallback={<>loading</>}>
-                    <RouterProvider
-                        router={router}
-                        context={{
-                            auth: {
-                                ...auth,
-                                user,
-                            },
-                            queryClient,
-                            pb,
-                        }}
-                    />
-                </Suspense>
+                <RouterProvider
+                    router={router}
+                    context={{
+                        queryClient,
+                        pb,
+                        user,
+                    }}
+                />
+                <Toaster position="top-center" />
+                <ReactQueryDevtools position="right" />
             </QueryClientProvider>
         </ThemeProvider>
     );

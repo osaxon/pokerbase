@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+/// <reference types="vite/client" />
 import path from "path";
 import { defineConfig } from "vite";
 import viteReact from "@vitejs/plugin-react";
@@ -10,5 +12,9 @@ export default defineConfig({
         alias: {
             "@": path.resolve(__dirname, "./src"),
         },
+    },
+    test: {
+        globals: true,
+        environment: "jsdom",
     },
 });

@@ -64,7 +64,6 @@ export type UpdateVote = {
 };
 
 const addVote = async ({ storyId, userId, score, pb, roomId }: AddVote) => {
-    console.log(score.toString(), "vote score");
     await pb.collection("votes").create({
         user: userId,
         story: storyId,
@@ -74,8 +73,6 @@ const addVote = async ({ storyId, userId, score, pb, roomId }: AddVote) => {
 };
 
 const updateVote = async ({ score, pb, voteId }: UpdateVote) => {
-    console.log(voteId, "updated score");
-
     await pb.collection("votes").update(voteId!, {
         vote: score,
     });

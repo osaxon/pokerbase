@@ -228,10 +228,10 @@
             }
         ],
         "indexes": [],
-        "listRule": "  @request.auth.verified = true && @request.auth.id ?= members.id",
+        "listRule": "  @request.auth.verified = true && @request.auth.id ?= squad.members.id",
         "viewRule": "",
-        "createRule": null,
-        "updateRule": null,
+        "createRule": "@request.auth.verified = true",
+        "updateRule": "@request.auth.verified = true",
         "deleteRule": null,
         "options": {}
     },
@@ -273,8 +273,8 @@
             }
         ],
         "indexes": [],
-        "listRule": null,
-        "viewRule": null,
+        "listRule": "@request.auth.verified = true",
+        "viewRule": "@request.auth.verified = true",
         "createRule": null,
         "updateRule": null,
         "deleteRule": null,
@@ -358,9 +358,9 @@
             }
         ],
         "indexes": [],
-        "listRule": "@request.auth.verified = true && @request.auth.id ?= room.members",
+        "listRule": "@request.auth.verified = true && @request.auth.id ?= room.members.id",
         "viewRule": "@request.auth.verified = true && @request.auth.id ?= room.members.id",
-        "createRule": null,
+        "createRule": "@request.auth.verified = true",
         "updateRule": null,
         "deleteRule": null,
         "options": {}
@@ -444,9 +444,119 @@
         "indexes": [],
         "listRule": "",
         "viewRule": "",
+        "createRule": "@request.auth.verified = true && @request.auth.id ?= room.squad.members.id",
+        "updateRule": "@request.auth.verified = true && @request.auth.id = user.id",
+        "deleteRule": null,
+        "options": {}
+    },
+    {
+        "id": "7x91kq0nq6rz654",
+        "name": "squad_metrics",
+        "type": "view",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "0qhypxqb",
+                "name": "name",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSize": 1
+                }
+            },
+            {
+                "system": false,
+                "id": "3jfa18ms",
+                "name": "total_stories",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSize": 1
+                }
+            },
+            {
+                "system": false,
+                "id": "9f3knpls",
+                "name": "avg_score",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSize": 1
+                }
+            },
+            {
+                "system": false,
+                "id": "3jtz5quy",
+                "name": "members",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSize": 1
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": "",
+        "viewRule": "",
         "createRule": null,
         "updateRule": null,
         "deleteRule": null,
-        "options": {}
+        "options": {
+            "query": "WITH squad_points AS (\n  SELECT \n  sq.id,\n  sq.name,\n  COUNT(s.id) as total_stories,\n  AVG(s.points) as avg_points,\n  JSON_ARRAY_LENGTH(sq.members) as members\nFROM squads as sq\nJOIN rooms as r on r.squad = sq.id\nJOIN stories as s on s.room = r.id\nGROUP BY sq.id\n)\nSELECT \n  id,\n  name,\n  total_stories,\n  (CASE\n    WHEN avg_points <= 1.5 THEN 1\n    WHEN avg_points <= 2.5 THEN 2\n    WHEN avg_points <= 4 THEN 3\n    WHEN avg_points <= 6.5 THEN 5\n    WHEN avg_points <= 10.5 THEN 8\n    ELSE 13\n  END) as avg_score,\n  members\nFROM squad_points;\n"
+        }
+    },
+    {
+        "id": "5ahdj4rajs49pbj",
+        "name": "user_metrics",
+        "type": "view",
+        "system": false,
+        "schema": [
+            {
+                "system": false,
+                "id": "mpwzxjrp",
+                "name": "user",
+                "type": "relation",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "collectionId": "_pb_users_auth_",
+                    "cascadeDelete": false,
+                    "minSelect": null,
+                    "maxSelect": 1,
+                    "displayFields": null
+                }
+            },
+            {
+                "system": false,
+                "id": "i67uotzv",
+                "name": "AvScore",
+                "type": "json",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "maxSize": 1
+                }
+            }
+        ],
+        "indexes": [],
+        "listRule": "",
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "options": {
+            "query": "SELECT u.id, votes.user, AVG(votes.vote) AS AvScore\nFROM votes\nJOIN users as u on u.id = votes.user\nGROUP BY votes.user"
+        }
     }
 ]

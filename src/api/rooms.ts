@@ -10,6 +10,7 @@ import {
 } from "@/types/pocketbase-types";
 import { queryOptions, useMutation } from "@tanstack/react-query";
 import { createExtendedRoute } from "./utils";
+import { UserWithSquad } from "./user";
 
 export const roomQuery = (id: string, pb: TypedPocketBase) =>
     queryOptions({
@@ -36,17 +37,19 @@ export const fetchRooms = async (pb: TypedPocketBase) => {
     return res;
 };
 
+export type RoomExpanded = RoomsResponse<{
+    stories: StoriesResponse<StoriesRecord>[];
+    votes_via_room: VotesResponse<{
+        user: UsersResponse<UsersRecord>;
+    }>[];
+    members: UsersResponse<UsersRecord>[];
+    activeStory: StoriesResponse<StoriesRecord>;
+}>;
+
 export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
-    const res = await pb.collection("rooms").getOne<
-        RoomsResponse<{
-            stories: StoriesResponse<StoriesRecord>[];
-            votes_via_room: VotesResponse<{
-                user: UsersResponse<UsersRecord>;
-            }>[];
-            members: UsersResponse<UsersRecord>[];
-            activeStory: StoriesResponse<StoriesRecord>;
-        }>
-    >(id, { expand: "members, stories, activeStory, votes_via_room.user" });
+    const res = await pb.collection("rooms").getOne<RoomExpanded>(id, {
+        expand: "members, stories, activeStory, votes_via_room.user",
+    });
     return res;
 };
 
@@ -92,6 +95,8 @@ export const setActiveStory = async (
 export const utils = {
     isJoined: (userId: string, room: RoomsResponse) =>
         room.members.includes(userId),
+    isSquadMember: (user: UserWithSquad, room: RoomExpanded) =>
+        room.squad === user.squad,
     isReadyForResults: (
         roomMembers: string[],
         votes: VotesResponse<VotesRecord>[]
@@ -119,20 +124,20 @@ export const utils = {
 
         if (!votes) return;
 
-        if (room.members.length === votes.length) return undefined;
+        if (
+            room.members.length ===
+            votes.filter((v) => v.story === activeStory).length
+        )
+            return undefined;
 
         const notVoted = [];
-
         for (const user of room.expand.members) {
-            console.log(votes.map((vote) => vote.id));
-            console.log(user.id);
             if (
                 !votes
                     .filter((v) => v.story === activeStory)
                     .map((vote) => vote.user)
                     .includes(user.id)
             ) {
-                console.log("not in list");
                 notVoted.push({ user: user.name, id: user.id });
             }
         }
@@ -140,12 +145,10 @@ export const utils = {
         return notVoted;
     },
     getVoteStatusMessage: (notVoted: { user: string; id: string }[]) => {
-        if (notVoted === undefined) return "Waiting for votes...";
+        if (!notVoted) return "Waiting for votes...";
         if (notVoted && notVoted.length >= 3)
             return `Still waiting for ${notVoted.length} votes`;
-        if (notVoted && notVoted.length === 2)
-            return `Waiting for ${notVoted[0].user} and
-                        ${notVoted[1].user} to vote`;
+        if (notVoted.length === 0) return null;
         return `Waiting for ${notVoted[0].user} to vote`;
     },
     getUserVote: (

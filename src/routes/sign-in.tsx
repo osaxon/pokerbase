@@ -42,9 +42,6 @@ export const Route = createFileRoute("/sign-in")({
 
 function SignInComponent() {
     const router = useRouter();
-    const { isValid } = Route.useRouteContext({
-        select: ({ auth: { token }, pb }) => ({ isValid: token, pb }),
-    });
     const ctx = Route.useRouteContext();
     const search = Route.useSearch();
 
@@ -64,7 +61,6 @@ function SignInComponent() {
     const { pwReset } = usePasswordReset(pb);
 
     const onSubmit = async (formData: z.infer<typeof loginSchema>) => {
-        console.log(formData);
         login(formData);
         if (isError) {
             form.setError("password", loginError);
@@ -75,16 +71,14 @@ function SignInComponent() {
     const OAuthLogin = async () => {
         toast.success("oauth login");
         const data = OAuth({ provider: "github", pb });
-        ctx.auth.user = { ...data };
-        console.log(data);
+        ctx.user = { ...data };
     };
 
     useLayoutEffect(() => {
-        if (isValid && search.redirect) {
-            console.log(isValid);
+        if (ctx.pb.authStore.isValid && search.redirect) {
             router.history.push(search.redirect);
         }
-    }, [isValid, search.redirect]);
+    }, [search.redirect, ctx.pb.authStore.isValid]);
 
     return (
         <div className="mx-auto max-w-lg min-h-screen py-10 px-2">

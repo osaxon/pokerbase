@@ -43,7 +43,6 @@ export const useLogin = (router: MyRouter, pb: TypedPocketBase) =>
             }
         },
         onError: (err) => {
-            console.log("err", err);
             toast.error(err.message);
         },
     });

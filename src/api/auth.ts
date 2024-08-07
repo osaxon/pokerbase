@@ -1,10 +1,9 @@
-import { Schema } from "@/types/database";
+import { TypedPocketBase } from "@/types/pocketbase-types";
 import { useMutation } from "@tanstack/react-query";
-import { TypedPocketBase } from "typed-pocketbase";
 
 type Providers = "github";
 
-export async function OAuth(provider: Providers, pb: TypedPocketBase<Schema>) {
+export async function OAuth(provider: Providers, pb: TypedPocketBase) {
     const authData = await pb.collection("users").authWithOAuth2({ provider });
 
     const { meta } = authData;
@@ -32,7 +31,7 @@ export const useOAuth = () =>
         mutationKey: ["auth", "signin"],
         mutationFn: async (vars: {
             provider: Providers;
-            pb: TypedPocketBase<Schema>;
+            pb: TypedPocketBase;
         }) => {
             const d = await OAuth(vars.provider, vars.pb);
             return d;

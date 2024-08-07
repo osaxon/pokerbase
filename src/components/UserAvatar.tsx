@@ -1,11 +1,9 @@
 import { userQuery } from "@/api/user";
-import { Route as rootRoot } from "@/routes/__root";
+import { MyRouterContext } from "@/routes/__root";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
-export default function UserAvatar() {
-    const ctx = rootRoot.useRouteContext();
-
+export default function UserAvatar({ ctx }: { ctx: MyRouterContext }) {
     const {
         data: { avatar, username },
         isError,

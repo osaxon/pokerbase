@@ -8,6 +8,7 @@ import {
     UsersResponse,
     VotesResponse,
 } from "@/types/pocketbase-types";
+import { useEffect } from "react";
 
 type Responses<T = never> = {
     rooms: RoomsResponse<T>;
@@ -30,9 +31,10 @@ export const useRealtime = <C extends keyof Responses>(
             .subscribe<Responses<CollectionRecords[C]>[C]>("*", callback);
     };
 
-    realTime();
-
-    return () => {
-        pb.collection(collection).unsubscribe("*");
-    };
+    useEffect(() => {
+        realTime();
+        return () => {
+            pb.collection(collection).unsubscribe("*");
+        };
+    }, []);
 };

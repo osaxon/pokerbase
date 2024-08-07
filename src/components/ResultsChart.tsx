@@ -81,8 +81,6 @@ export function ResultsChart({
         chartData[chartEntry].votes += 1;
     }
 
-    console.log(chartData, "chart data");
-
     // const totalVotes = React.useMemo(() => {
     //     return chartData.reduce((acc, curr) => acc + curr.votes, 0);
     // }, []);

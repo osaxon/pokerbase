@@ -2,12 +2,10 @@ import { ModeToggle } from "@/components/mode-toggle";
 import SvgLogo from "@/components/svg-logo";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Toaster } from "@/components/ui/sonner";
 import UserAvatar from "@/components/UserAvatar";
 import { TypedPocketBase } from "@/types/pocketbase-types";
 import { ApplicationError } from "@/utils/error";
 import { QueryClient } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import {
     ErrorComponentProps,
     Link,
@@ -20,12 +18,9 @@ import { AuthModel } from "pocketbase";
 import { Suspense } from "react";
 
 export type MyRouterContext = {
-    auth: {
-        token: string;
-        user: AuthModel;
-    };
     queryClient: QueryClient;
     pb: TypedPocketBase;
+    user: AuthModel;
 };
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
@@ -56,6 +51,7 @@ function Error(data: ErrorComponentProps) {
 
 function RootComponent() {
     const context = Route.useRouteContext();
+
     return (
         <>
             <div className="p-2 flex gap-2 text-lg">
@@ -77,7 +73,7 @@ function RootComponent() {
                                     <Skeleton className="h-10 w-10 rounded-full" />
                                 }
                             >
-                                <UserAvatar />
+                                <UserAvatar ctx={context} />
                             </Suspense>
                         ) : (
                             <Button asChild>
@@ -97,8 +93,6 @@ function RootComponent() {
             </div>
             <hr />
             <Outlet />
-            <Toaster />
-            <ReactQueryDevtools position="right" />
             <TanStackRouterDevtools position="bottom-left" />
         </>
     );

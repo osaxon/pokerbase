@@ -37,11 +37,7 @@ function Home() {
             </Button>
             <div className="grid @2xl:grid-cols-3 gap-4">
                 {rooms.items.map((room) => (
-                    <RoomCard
-                        key={room.id}
-                        room={room}
-                        userId={ctx.auth.user?.id}
-                    />
+                    <RoomCard key={room.id} room={room} userId={ctx.user?.id} />
                 ))}
             </div>
         </div>

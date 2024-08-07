@@ -1,3 +1,4 @@
+import { squadMetricsQuery, userMetricsQuery } from "@/api/metrics";
 import { squadQuery, useSetSquad } from "@/api/squads";
 import { UserWithSquad, userQuery } from "@/api/user";
 import DrawerDialog from "@/components/DrawerDialog";
@@ -29,42 +30,52 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useRealtime } from "@/hooks/useRealtime";
+import { useUser } from "@/hooks/useUser";
 import { UsersResponse } from "@/types/pocketbase-types";
 import { UserSchemaWithSquad, userSchemaWithSquad } from "@/types/schemas";
 import { protectedRoute } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/account/")({
     beforeLoad: protectedRoute,
-    // loader: async ({ context }) => {
-    //     Promise.all([
-    //         context.queryClient.ensureQueryData(
-    //             userQuery(context.auth.user?.id, context.pb)
-    //         ),
-    //         context.queryClient.ensureQueryData(squadQuery(context.pb)),
-    //     ]);
-    // },
+    loader: async ({ context }) => {
+        Promise.all([
+            context.queryClient.ensureQueryData(
+                userQuery(
+                    context.pb.authStore.model?.id,
+                    context.pb,
+                    context.pb.authStore.isValid
+                )
+            ),
+            context.queryClient.ensureQueryData(squadQuery(context.pb)),
+        ]);
+    },
     component: AccountComponent,
 });
 
 function AccountComponent() {
     const ctx = Route.useRouteContext();
     const router = useRouter();
-    const isValid = ctx.pb.authStore.isValid;
+    const user = useUser(ctx);
     const { data } = useSuspenseQuery(
-        userQuery(ctx.auth.user?.id, ctx.pb, isValid)
+        userQuery(user?.id, ctx.pb, ctx.pb.authStore.isValid)
     );
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newSquad, setNewSquad] = useState("");
     const { data: squads } = useSuspenseQuery(squadQuery(ctx.pb));
+    const { data: squadMetrics } = useSuspenseQuery(
+        squadMetricsQuery(ctx.pb, user.squad)
+    );
+    const { data: userMetrics } = useSuspenseQuery(
+        userMetricsQuery(ctx.pb, user.id)
+    );
 
-    const unsub = useRealtime("users", ctx.pb, (d) => {
-        console.log(d);
+    useRealtime("users", ctx.pb, (d) => {
         const { record } = d;
         if (!record) return;
         return ctx.queryClient.setQueryData<unknown, string[], UsersResponse>(
@@ -73,13 +84,9 @@ function AccountComponent() {
         );
     });
 
-    useEffect(() => {
-        return () => unsub();
-    }, []);
-
     const squadChangeCallback = () => {
-        ctx.auth.user = {
-            ...ctx.auth.user,
+        ctx.user = {
+            ...ctx.user,
             squad: newSquad,
         };
         setDialogOpen(false);
@@ -93,7 +100,7 @@ function AccountComponent() {
     );
 
     return (
-        <div className="max-w-5xl mx-auto py-10 px-2">
+        <div className="max-w-5xl mx-auto py-10 px-2 space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle>{data.name}'s Profile</CardTitle>
@@ -105,7 +112,7 @@ function AccountComponent() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="@container">
-                    <div className="grid grid-cols-1 @3xl:grid-cols-5 border gap-4">
+                    <div className="grid grid-cols-1 @3xl:grid-cols-5 gap-4">
                         <Avatar className="w-24 h-24 mx-auto">
                             <AvatarImage src={data.avatar} />
                             <AvatarFallback>
@@ -121,7 +128,7 @@ function AccountComponent() {
                             <p>{data.squad}</p>
                             <div className="border">
                                 <p>Router ctx model</p>
-                                <p>{ctx.auth.user?.squad}</p>
+                                <p>{ctx.user?.squad}</p>
                             </div>
                             <DrawerDialog
                                 open={dialogOpen}
@@ -155,7 +162,7 @@ function AccountComponent() {
                                     <Button
                                         onClick={() =>
                                             setSquad({
-                                                userId: ctx.auth.user?.id,
+                                                userId: ctx.user?.id,
                                                 squadId: newSquad,
                                             })
                                         }
@@ -166,9 +173,22 @@ function AccountComponent() {
                             </DrawerDialog>
                         </div>
                     </div>
-                    <pre>
-                        <code>{JSON.stringify(ctx.auth.user, null, 2)}</code>
-                    </pre>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Metrics for User</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <pre>{JSON.stringify(userMetrics, null, 2)}</pre>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Metrics for Squad</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <pre>{JSON.stringify(squadMetrics, null, 2)}</pre>
                 </CardContent>
             </Card>
         </div>
