@@ -36,7 +36,7 @@ import { UserSchemaWithSquad, userSchemaWithSquad } from "@/types/schemas";
 import { protectedRoute } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -60,7 +60,6 @@ export const Route = createFileRoute("/account/")({
 
 function AccountComponent() {
     const ctx = Route.useRouteContext();
-    const router = useRouter();
     const user = useUser(ctx);
     const { data } = useSuspenseQuery(
         userQuery(user?.id, ctx.pb, ctx.pb.authStore.isValid)
@@ -94,7 +93,6 @@ function AccountComponent() {
 
     const { mutate: setSquad } = useSetSquad(
         ctx.pb,
-        router,
         ctx.queryClient,
         squadChangeCallback
     );
