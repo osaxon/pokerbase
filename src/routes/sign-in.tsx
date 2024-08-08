@@ -57,7 +57,7 @@ function SignInComponent() {
 
     const { mutate: login, isError } = useLogin(router, pb);
 
-    const { mutateAsync: OAuth } = useOAuth();
+    const { mutateAsync: OAuth } = useOAuth(router);
     const { pwReset } = usePasswordReset(pb);
 
     const onSubmit = async (formData: z.infer<typeof loginSchema>) => {

@@ -1,5 +1,7 @@
+import { MyRouter } from "@/App";
 import { TypedPocketBase } from "@/types/pocketbase-types";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 type Providers = "github";
 
@@ -26,7 +28,7 @@ export async function OAuth(provider: Providers, pb: TypedPocketBase) {
     return authData;
 }
 
-export const useOAuth = () =>
+export const useOAuth = (router: MyRouter) =>
     useMutation({
         mutationKey: ["auth", "signin"],
         mutationFn: async (vars: {
@@ -36,4 +38,12 @@ export const useOAuth = () =>
             const d = await OAuth(vars.provider, vars.pb);
             return d;
         },
+        onSuccess: (data) => {
+            if (data.token) {
+                toast.success("Logged in successfully");
+                router.navigate({
+                    to: "/rooms",
+                });
+            }
+        }
     });

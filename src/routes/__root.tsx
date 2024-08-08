@@ -9,6 +9,7 @@ import { QueryClient } from "@tanstack/react-query";
 import {
     ErrorComponentProps,
     Link,
+    NotFoundError,
     Outlet,
     createRootRouteWithContext,
 } from "@tanstack/react-router";
@@ -34,6 +35,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         }
     },
     errorComponent: Error,
+    notFoundComponent: NotFound,
 });
 
 function Error(data: ErrorComponentProps) {
@@ -43,6 +45,18 @@ function Error(data: ErrorComponentProps) {
                 <ServerCrash />
                 <p className="text-lg border font-mono p-2 rounded bg-amber-400 text-amber-950">
                     {data.error.message}
+                </p>
+            </div>
+        </div>
+    );
+}
+
+function NotFound(data: NotFoundError) {
+    return (
+        <div className="flex justify-center items-center min-h-[100dvh]">
+            <div className="flex flex-col items-center gap-2">
+                <p className="text-lg border font-mono p-2 rounded bg-blue-400 text-amber-950">
+                    {data.data}
                 </p>
             </div>
         </div>

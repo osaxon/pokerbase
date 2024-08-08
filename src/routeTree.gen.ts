@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as SignInImport } from './routes/sign-in'
 import { Route as IndexImport } from './routes/index'
 import { Route as SquadsIndexImport } from './routes/squads.index'
+import { Route as RoomsIndexImport } from './routes/rooms.index'
 import { Route as DashboardIndexImport } from './routes/dashboard.index'
 import { Route as AccountIndexImport } from './routes/account.index'
 import { Route as RoomsNewImport } from './routes/rooms.new'
@@ -33,6 +34,11 @@ const IndexRoute = IndexImport.update({
 
 const SquadsIndexRoute = SquadsIndexImport.update({
   path: '/squads/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const RoomsIndexRoute = RoomsIndexImport.update({
+  path: '/rooms/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -102,6 +108,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof rootRoute
     }
+    '/rooms/': {
+      id: '/rooms/'
+      path: '/rooms'
+      fullPath: '/rooms'
+      preLoaderRoute: typeof RoomsIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/squads/': {
       id: '/squads/'
       path: '/squads'
@@ -121,6 +134,7 @@ export const routeTree = rootRoute.addChildren({
   RoomsNewRoute,
   AccountIndexRoute,
   DashboardIndexRoute,
+  RoomsIndexRoute,
   SquadsIndexRoute,
 })
 
@@ -138,6 +152,7 @@ export const routeTree = rootRoute.addChildren({
         "/rooms/new",
         "/account/",
         "/dashboard/",
+        "/rooms/",
         "/squads/"
       ]
     },
@@ -158,6 +173,9 @@ export const routeTree = rootRoute.addChildren({
     },
     "/dashboard/": {
       "filePath": "dashboard.index.tsx"
+    },
+    "/rooms/": {
+      "filePath": "rooms.index.tsx"
     },
     "/squads/": {
       "filePath": "squads.index.tsx"

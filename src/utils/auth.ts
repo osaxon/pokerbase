@@ -38,7 +38,7 @@ export const useLogin = (router: MyRouter, pb: TypedPocketBase) =>
                 toast.success("Logged in successfully");
                 router.invalidate();
                 router.navigate({
-                    to: "/",
+                    to: "/rooms",
                 });
             }
         },

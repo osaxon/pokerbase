@@ -1,4 +1,3 @@
-import { squadMetricsQuery, userMetricsQuery } from "@/api/metrics";
 import { squadQuery, useSetSquad } from "@/api/squads";
 import { UserWithSquad, userQuery } from "@/api/user";
 import DrawerDialog from "@/components/DrawerDialog";
@@ -29,9 +28,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Metric, useMetrics } from "@/hooks/useMetrics";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useUser } from "@/hooks/useUser";
-import { UsersResponse } from "@/types/pocketbase-types";
+import { TypedPocketBase, UsersResponse } from "@/types/pocketbase-types";
 import { UserSchemaWithSquad, userSchemaWithSquad } from "@/types/schemas";
 import { protectedRoute } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,12 +67,6 @@ function AccountComponent() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newSquad, setNewSquad] = useState("");
     const { data: squads } = useSuspenseQuery(squadQuery(ctx.pb));
-    const { data: squadMetrics } = useSuspenseQuery(
-        squadMetricsQuery(ctx.pb, user.squad)
-    );
-    const { data: userMetrics } = useSuspenseQuery(
-        userMetricsQuery(ctx.pb, user.id)
-    );
 
     useRealtime("users", ctx.pb, (d) => {
         const { record } = d;
@@ -173,22 +167,16 @@ function AccountComponent() {
                     </div>
                 </CardContent>
             </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Metrics for User</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <pre>{JSON.stringify(userMetrics, null, 2)}</pre>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Metrics for Squad</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <pre>{JSON.stringify(squadMetrics, null, 2)}</pre>
-                </CardContent>
-            </Card>
+            <MetricsCard
+                metricType="user_metrics"
+                pb={ctx.pb}
+                recordId={user.id}
+            />
+            <MetricsCard
+                metricType="squad_metrics"
+                pb={ctx.pb}
+                recordId={user.squad}
+            />
         </div>
     );
 }
@@ -260,5 +248,31 @@ const UserAccountForm = ({ data }: { data: UserWithSquad }) => {
                 </form>
             </Form>
         </div>
+    );
+};
+
+const MetricsCard = ({
+    metricType,
+    pb,
+    recordId,
+}: {
+    metricType: Metric;
+    pb: TypedPocketBase;
+    recordId: string;
+}) => {
+    const { data, error } = useMetrics(metricType, pb, recordId);
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {error ? (
+                    <>Error</>
+                ) : (
+                    <pre>{JSON.stringify(data, null, 2)}</pre>
+                )}
+            </CardContent>
+        </Card>
     );
 };

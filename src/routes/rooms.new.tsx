@@ -77,7 +77,7 @@ function NewRoomComponent() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto py-10 space-y-10">
             <h1>Create New Room</h1>
             {!newRoom && (
                 <Form {...form}>
@@ -169,39 +169,41 @@ function NewRoomComponent() {
                     </form>
                 </Form>
             )}
-            {newRoom && (
+            {!newRoom && (
                 <Dialog defaultOpen={true}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>New Room Created</DialogTitle>
                             <DialogDescription>
-                                <div className="flex items-center justify-between py-6">
-                                    <Button
-                                        onClick={() =>
-                                            toast.success(
-                                                "copied to clipboard!"
-                                            )
-                                        }
-                                        variant="outline"
-                                    >
-                                        {window.location.href
-                                            .toString()
-                                            .slice(0, -3)}
-                                        {newRoom.id}
-                                    </Button>
-
-                                    <div className="flex items-center gap-1">
-                                        <Button>
-                                            <Link
-                                                to="/rooms/$id"
-                                                params={{ id: newRoom.id }}
-                                            >
-                                                Go to Room
-                                            </Link>
-                                        </Button>
-                                    </div>
-                                </div>
+                                Your room is ready!
                             </DialogDescription>
+                            <div className="flex items-center justify-between py-6 gap-4">
+                                <Button
+                                    onClick={() =>
+                                        toast.success("copied to clipboard!")
+                                    }
+                                    className="w-full justify-start"
+                                    variant="outline"
+                                >
+                                    {window.location.href
+                                        .toString()
+                                        .slice(0, -3)}
+                                    {newRoom?.id ?? "123"}
+                                </Button>
+
+                                <div className="flex items-center gap-1">
+                                    <Button>
+                                        <Link
+                                            to="/rooms/$id"
+                                            params={{
+                                                id: newRoom?.id ?? "123",
+                                            }}
+                                        >
+                                            Go to Room
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </div>
                         </DialogHeader>
                     </DialogContent>
                 </Dialog>

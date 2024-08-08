@@ -120,7 +120,7 @@ export const utils = {
         activeStory: string
     ) => {
         if (!activeStory) return undefined;
-        if (!room.expand?.members) throw new Error("no members");
+        if (!room.expand?.members) return undefined;
 
         if (!votes) return;
 
