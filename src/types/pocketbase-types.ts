@@ -6,7 +6,10 @@ import type PocketBase from 'pocketbase'
 import type { RecordService } from 'pocketbase'
 
 export enum Collections {
+	Guests = "guests",
+	Organisation = "organisation",
 	Rooms = "rooms",
+	RoomsView = "rooms_view",
 	SquadMetrics = "squad_metrics",
 	Squads = "squads",
 	Stories = "stories",
@@ -39,6 +42,17 @@ export type AuthSystemFields<T = never> = {
 
 // Record types for each collection
 
+export type GuestsRecord = {
+	name?: string
+	rooms?: RecordIdString[]
+}
+
+export type OrganisationRecord = {
+	name?: string
+	rooms?: RecordIdString[]
+	users?: RecordIdString[]
+}
+
 export enum RoomsStatusOptions {
 	"open" = "open",
 	"in progress" = "in progress",
@@ -52,6 +66,20 @@ export type RoomsRecord = {
 	squad?: RecordIdString
 	status?: RoomsStatusOptions
 	stories?: RecordIdString[]
+}
+
+export enum RoomsViewStatusOptions {
+	"open" = "open",
+	"in progress" = "in progress",
+	"completed" = "completed",
+}
+export type RoomsViewRecord = {
+	members?: number
+	name?: string
+	owner?: RecordIdString
+	status?: RoomsViewStatusOptions
+	stories?: number
+	votes?: number
 }
 
 export type SquadMetricsRecord<Tavg_score = unknown, Tmembers = unknown, Tname = unknown, Ttotal_stories = unknown> = {
@@ -78,19 +106,21 @@ export type StoriesRecord = {
 	voted?: boolean
 }
 
-export type UserMetricsRecord<TAvScore = unknown> = {
-	AvScore?: null | TAvScore
-	user?: RecordIdString
+export type UserMetricsRecord<Tavg_score = unknown> = {
+	avg_score?: null | Tavg_score
+	email?: string
 }
 
 export enum UsersRoleOptions {
 	"user" = "user",
 	"super-user" = "super-user",
 	"admin" = "admin",
+	"guest" = "guest",
 }
 export type UsersRecord = {
 	avatar?: string
 	name?: string
+	organisation?: RecordIdString
 	role?: UsersRoleOptions
 	rooms?: RecordIdString[]
 	squad?: RecordIdString
@@ -113,18 +143,24 @@ export type VotesRecord = {
 }
 
 // Response types include system fields and match responses from the PocketBase API
+export type GuestsResponse<Texpand = unknown> = Required<GuestsRecord> & AuthSystemFields<Texpand>
+export type OrganisationResponse<Texpand = unknown> = Required<OrganisationRecord> & BaseSystemFields<Texpand>
 export type RoomsResponse<Texpand = unknown> = Required<RoomsRecord> & BaseSystemFields<Texpand>
+export type RoomsViewResponse<Texpand = unknown> = Required<RoomsViewRecord> & BaseSystemFields<Texpand>
 export type SquadMetricsResponse<Tavg_score = unknown, Tmembers = unknown, Tname = unknown, Ttotal_stories = unknown, Texpand = unknown> = Required<SquadMetricsRecord<Tavg_score, Tmembers, Tname, Ttotal_stories>> & BaseSystemFields<Texpand>
 export type SquadsResponse<Texpand = unknown> = Required<SquadsRecord> & BaseSystemFields<Texpand>
 export type StoriesResponse<Texpand = unknown> = Required<StoriesRecord> & BaseSystemFields<Texpand>
-export type UserMetricsResponse<TAvScore = unknown, Texpand = unknown> = Required<UserMetricsRecord<TAvScore>> & BaseSystemFields<Texpand>
+export type UserMetricsResponse<Tavg_score = unknown, Texpand = unknown> = Required<UserMetricsRecord<Tavg_score>> & BaseSystemFields<Texpand>
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> & AuthSystemFields<Texpand>
 export type VotesResponse<Texpand = unknown> = Required<VotesRecord> & BaseSystemFields<Texpand>
 
 // Types containing all Records and Responses, useful for creating typing helper functions
 
 export type CollectionRecords = {
+	guests: GuestsRecord
+	organisation: OrganisationRecord
 	rooms: RoomsRecord
+	rooms_view: RoomsViewRecord
 	squad_metrics: SquadMetricsRecord
 	squads: SquadsRecord
 	stories: StoriesRecord
@@ -134,7 +170,10 @@ export type CollectionRecords = {
 }
 
 export type CollectionResponses = {
+	guests: GuestsResponse
+	organisation: OrganisationResponse
 	rooms: RoomsResponse
+	rooms_view: RoomsViewResponse
 	squad_metrics: SquadMetricsResponse
 	squads: SquadsResponse
 	stories: StoriesResponse
@@ -147,7 +186,10 @@ export type CollectionResponses = {
 // https://github.com/pocketbase/js-sdk#specify-typescript-definitions
 
 export type TypedPocketBase = PocketBase & {
+	collection(idOrName: 'guests'): RecordService<GuestsResponse>
+	collection(idOrName: 'organisation'): RecordService<OrganisationResponse>
 	collection(idOrName: 'rooms'): RecordService<RoomsResponse>
+	collection(idOrName: 'rooms_view'): RecordService<RoomsViewResponse>
 	collection(idOrName: 'squad_metrics'): RecordService<SquadMetricsResponse>
 	collection(idOrName: 'squads'): RecordService<SquadsResponse>
 	collection(idOrName: 'stories'): RecordService<StoriesResponse>

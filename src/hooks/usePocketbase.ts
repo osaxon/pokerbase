@@ -16,7 +16,10 @@ export const usePocketbase = () => {
         const unsub = pb.authStore.onChange((token, model) => {
             console.log("[auth store change]", { token, model });
         });
-        return () => unsub();
+        return () => {
+            pb.authStore.clear();
+            unsub();
+        };
     }, []);
 
     const updateToken = useCallback(async () => {
@@ -29,7 +32,6 @@ export const usePocketbase = () => {
             // Not authorized
             pb.authStore.clear();
             setToken("");
-            // clearUser();
         }
     }, [pb]);
 

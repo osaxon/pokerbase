@@ -1,10 +1,13 @@
 import {
     RoomsResponse,
+    RoomsViewRecord,
+    RoomsViewResponse,
     StoriesRecord,
     StoriesResponse,
     TypedPocketBase,
     UsersRecord,
     UsersResponse,
+    UsersRoleOptions,
     VotesRecord,
     VotesResponse,
 } from "@/types/pocketbase-types";
@@ -24,8 +27,17 @@ export const roomsQuery = (pb: TypedPocketBase) =>
         queryFn: () => fetchRooms(pb),
     });
 
+export const roomsViewQuery = (pb: TypedPocketBase) =>
+    queryOptions({
+        queryKey: ["rooms-view"],
+        queryFn: () =>
+            pb
+                .collection("rooms_view")
+                .getFullList<RoomsViewResponse<RoomsViewRecord>>(),
+    });
+
 export const fetchRooms = async (pb: TypedPocketBase) => {
-    const res = await pb
+    return pb
         .collection("rooms")
         .getList<
             RoomsResponse<{ members: UsersResponse<UsersRecord>[] }>
@@ -33,8 +45,6 @@ export const fetchRooms = async (pb: TypedPocketBase) => {
             expand: "members",
             filter: pb.filter("status = {:status}", { status: "open" }),
         });
-
-    return res;
 };
 
 export type RoomExpanded = RoomsResponse<{
@@ -50,6 +60,7 @@ export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
     const res = await pb.collection("rooms").getOne<RoomExpanded>(id, {
         expand: "members, stories, activeStory, votes_via_room.user",
     });
+    console.log(res, "resss");
     return res;
 };
 
@@ -84,6 +95,53 @@ export const joinRoom = async (
     });
 };
 
+export const joinRoomAsGuest = async (
+    name: string,
+    pb: TypedPocketBase,
+    roomId: string
+) => {
+    console.log(roomId, "<<<<<<----the room");
+    const tempPw = `${name}_${new Date().valueOf()}`;
+    const guestData = {
+        username: `${name}_${new Date().valueOf()}`,
+        email: `${name}_${new Date().valueOf()}@guestaccount.com`,
+        password: tempPw,
+        passwordConfirm: tempPw,
+        name: name,
+        role: UsersRoleOptions.guest,
+        verifed: true,
+        "rooms+": roomId,
+    };
+    try {
+        await pb
+            .collection("users")
+            .create<UsersResponse<UsersRecord>>(guestData);
+    } catch (error) {
+        console.log("error creating guest account");
+        return error;
+    }
+
+    let userId;
+    try {
+        const user = await pb
+            .collection("users")
+            .authWithPassword(guestData.username, guestData.password);
+        userId = user.record.id;
+    } catch (error) {
+        console.log("error logging in as guest");
+        return error;
+    }
+
+    try {
+        await pb.collection("rooms").update(roomId, {
+            "members+": userId,
+        });
+    } catch (error) {
+        console.log(error);
+        return error;
+    }
+};
+
 export const setActiveStory = async (
     roomId: string,
     storyId: string,
@@ -102,6 +160,7 @@ export const utils = {
         votes: VotesResponse<VotesRecord>[]
     ) => {
         const voterIds = new Set(votes.map((v) => v.user));
+        console.log(voterIds);
         if (roomMembers.length !== voterIds.size) {
             return false;
         }
@@ -163,4 +222,7 @@ export const utils = {
     ) =>
         votes.find((v) => v.user === userId && v.story === activeStory) !=
         undefined,
+    getRoomUrl: (id: string) => {
+        return `${window.location.href.toString().slice(0, -3)}${id}`;
+    },
 };

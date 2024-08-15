@@ -35,8 +35,6 @@ export const useLogin = (router: MyRouter, pb: TypedPocketBase) =>
         mutationKey: ["login"],
         onSuccess: (data) => {
             if (data.token) {
-                toast.success("Logged in successfully");
-                router.invalidate();
                 router.navigate({
                     to: "/rooms",
                 });

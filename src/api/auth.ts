@@ -1,7 +1,6 @@
 import { MyRouter } from "@/App";
 import { TypedPocketBase } from "@/types/pocketbase-types";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 type Providers = "github";
 
@@ -40,10 +39,9 @@ export const useOAuth = (router: MyRouter) =>
         },
         onSuccess: (data) => {
             if (data.token) {
-                toast.success("Logged in successfully");
                 router.navigate({
                     to: "/rooms",
                 });
             }
-        }
+        },
     });

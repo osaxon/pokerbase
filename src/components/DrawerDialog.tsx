@@ -35,7 +35,7 @@ export default function DrawerDialog(props: DrawerDialogProps) {
         return (
             <Dialog open={props.open} onOpenChange={props.onOpenChange}>
                 <DialogTrigger asChild>
-                    <Button variant="outline">{props.triggerLabel}</Button>
+                    <Button>{props.triggerLabel}</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>

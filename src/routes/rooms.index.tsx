@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { roomsQuery, utils } from "@/api/rooms";
+import { roomsViewQuery, utils } from "@/api/rooms";
+import DrawerDialog from "@/components/DrawerDialog";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
+import { DataTable } from "@/components/tables/data.table";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -10,7 +12,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { useUser } from "@/hooks/useUser";
 import {
     RoomsResponse,
     UsersRecord,
@@ -19,6 +20,7 @@ import {
 import { protectedRoute } from "@/utils/auth";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { columns } from "../components/tables/rooms/columns";
 
 export const Route = createFileRoute("/rooms/")({
     beforeLoad: protectedRoute,
@@ -27,41 +29,17 @@ export const Route = createFileRoute("/rooms/")({
 
 export function RoomsComponent() {
     const ctx = Route.useRouteContext();
-    const { data: rooms } = useSuspenseQuery(roomsQuery(ctx.pb));
-    const user = useUser(ctx);
+    const { data: view } = useSuspenseQuery(roomsViewQuery(ctx.pb));
     return (
-        <div className="max-w-5xl mx-auto space-y-8 py-6 @container">
+        <main className="max-w-5xl mx-auto space-y-8 py-6 px-4 @container">
             <h1 className="text-4xl font-mono font-bold">Poker time</h1>
-            <Button asChild>
-                <Link to="/rooms/new">New Room</Link>
-            </Button>
+            <DrawerDialog triggerLabel="New Room" title="New Room">
+                new room form
+            </DrawerDialog>
             <section>
-                <h2>Your Squad's Rooms</h2>
-                <div className="grid @2xl:grid-cols-3 gap-4">
-                    {rooms.items
-                        .filter((s) => s.squad === user.squad)
-                        .map((room) => (
-                            <RoomCard
-                                key={room.id}
-                                room={room}
-                                userId={ctx.user?.id}
-                            />
-                        ))}
-                </div>
-                <h2>Other Squad's Rooms</h2>
-                <div className="grid @2xl:grid-cols-3 gap-4">
-                    {rooms.items
-                        .filter((s) => s.squad !== user.squad)
-                        .map((room) => (
-                            <RoomCard
-                                key={room.id}
-                                room={room}
-                                userId={ctx.user?.id}
-                            />
-                        ))}
-                </div>
+                <DataTable columns={columns} data={view} filterColumn="name" />
             </section>
-        </div>
+        </main>
     );
 }
 

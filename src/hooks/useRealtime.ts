@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { CollectionRecords, TypedPocketBase } from "@/types/pocketbase-types";
-import { RecordSubscription } from "pocketbase";
-import {
+import type { RecordSubscription } from "pocketbase";
+import type {
     RoomsResponse,
     SquadsResponse,
     StoriesResponse,
     UsersResponse,
     VotesResponse,
+    TypedPocketBase,
+    CollectionRecords,
 } from "@/types/pocketbase-types";
 import { useEffect } from "react";
 
@@ -28,7 +28,9 @@ export const useRealtime = <C extends keyof Responses>(
     const realTime = async () => {
         return await pb
             .collection(collection)
-            .subscribe<Responses<CollectionRecords[C]>[C]>("*", callback);
+            .subscribe<
+                Responses<CollectionRecords[C]>[C]
+            >("*", (d) => callback(d));
     };
 
     useEffect(() => {
