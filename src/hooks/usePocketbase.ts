@@ -11,16 +11,19 @@ const twoMinsInMs = 120000;
 export const usePocketbase = () => {
     const pb = useMemo(() => createTypedPB(), []);
     const [token, setToken] = useState(pb.authStore.token);
+    const [model, setModel] = useState(pb.authStore.model);
 
     useEffect(() => {
         const unsub = pb.authStore.onChange((token, model) => {
             console.log("[auth store change]", { token, model });
+            setToken(token);
+            setModel(model);
         });
         return () => {
             pb.authStore.clear();
             unsub();
         };
-    }, []);
+    }, [pb.authStore]);
 
     const updateToken = useCallback(async () => {
         try {
@@ -49,10 +52,7 @@ export const usePocketbase = () => {
     useInterval(refreshSession, token ? twoMinsInMs : null);
 
     return {
-        auth: {
-            token,
-            updateToken,
-        },
         pb,
+        user: model,
     };
 };

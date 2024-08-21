@@ -46,11 +46,7 @@ export const Route = createFileRoute("/account/")({
     loader: async ({ context }) => {
         Promise.all([
             context.queryClient.ensureQueryData(
-                userQuery(
-                    context.pb.authStore.model?.id,
-                    context.pb,
-                    context.pb.authStore.isValid
-                )
+                userQuery(context.pb.authStore.model?.id, context.pb)
             ),
             context.queryClient.ensureQueryData(squadQuery(context.pb)),
         ]);
@@ -61,9 +57,6 @@ export const Route = createFileRoute("/account/")({
 function AccountComponent() {
     const ctx = Route.useRouteContext();
     const user = useUser(ctx);
-    const { data } = useSuspenseQuery(
-        userQuery(user?.id, ctx.pb, ctx.pb.authStore.isValid)
-    );
     const [dialogOpen, setDialogOpen] = useState(false);
     const [newSquad, setNewSquad] = useState("");
     const { data: squads } = useSuspenseQuery(squadQuery(ctx.pb));
@@ -95,29 +88,29 @@ function AccountComponent() {
         <div className="max-w-5xl mx-auto py-10 px-2 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>{data.name}'s Profile</CardTitle>
+                    <CardTitle>{user.name}'s Profile</CardTitle>
                     <CardDescription
                         onClick={() => toast.success("Copied to clipboard")}
                         className="cursor-pointer hover:underline"
                     >
-                        ID: {data.id}
+                        ID: {user.id}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="@container">
                     <div className="grid grid-cols-1 @3xl:grid-cols-5 gap-4">
                         <Avatar className="w-24 h-24 mx-auto">
-                            <AvatarImage src={data.avatar} />
+                            <AvatarImage src={user.avatar} />
                             <AvatarFallback>
-                                {data.username.slice(0, 2)}
+                                {user.username.slice(0, 2)}
                             </AvatarFallback>
                         </Avatar>
 
-                        <UserAccountForm data={data} />
+                        <UserAccountForm data={user} />
 
                         <div className="p-6">
                             <p>Squad</p>
-                            <p>{data.expand?.squad.name}</p>
-                            <p>{data.squad}</p>
+                            <p>{user.expand?.squad.name}</p>
+                            <p>{user.squad}</p>
                             <div className="border">
                                 <p>Router ctx model</p>
                                 <p>{ctx.user?.squad}</p>
@@ -141,7 +134,7 @@ function AccountComponent() {
                                             {squads.map((s) => (
                                                 <SelectItem
                                                     key={s.id}
-                                                    disabled={data.squad.includes(
+                                                    disabled={user.squad.includes(
                                                         s.id
                                                     )}
                                                     value={s.id}

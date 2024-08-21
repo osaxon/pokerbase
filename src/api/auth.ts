@@ -37,11 +37,7 @@ export const useOAuth = (router: MyRouter) =>
             const d = await OAuth(vars.provider, vars.pb);
             return d;
         },
-        onSuccess: (data) => {
-            if (data.token) {
-                router.navigate({
-                    to: "/rooms",
-                });
-            }
+        onSuccess: () => {
+            router.invalidate();
         },
     });

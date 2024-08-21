@@ -15,21 +15,22 @@ export const userQuery = (userId: string, pb: TypedPocketBase) =>
     queryOptions({
         queryKey: ["user", userId],
         queryFn: async () => {
-            try {
-                return await fetchUserById(userId, pb);
-            } catch (error) {
-                return error;
-            }
+            return fetchUserById(userId, pb);
         },
+        enabled: userId !== null,
     });
 
 const fetchUserById = async (userId: string, pb: TypedPocketBase) => {
-    const user = await pb
-        .collection("users")
-        .getOne<UserWithSquad>(userId, { expand: "squad" });
-    const avatar = pb.files.getUrl(user, user.avatar);
-    return {
-        ...user,
-        avatar,
-    };
+    try {
+        const user = await pb
+            .collection("users")
+            .getOne<UserWithSquad>(userId, { expand: "squad" });
+        const avatar = pb.files.getUrl(user, user.avatar);
+        return {
+            ...user,
+            avatar,
+        };
+    } catch (error) {
+        return "no user id";
+    }
 };

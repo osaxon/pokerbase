@@ -34,9 +34,10 @@ export const useLogin = (router: MyRouter, pb: TypedPocketBase) =>
         },
         mutationKey: ["login"],
         onSuccess: (data) => {
-            if (data.token) {
+            if (data.token && data.record) {
+                router.invalidate();
                 router.navigate({
-                    to: "/rooms",
+                    to: router.latestLocation.href,
                 });
             }
         },

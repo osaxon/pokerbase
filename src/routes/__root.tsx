@@ -56,7 +56,7 @@ function NotFound(data: NotFoundError) {
         <div className="flex justify-center items-center min-h-[100dvh]">
             <div className="flex flex-col items-center gap-2">
                 <p className="text-lg border font-mono p-2 rounded bg-blue-400 text-amber-950">
-                    {data.data}
+                    {data.data} not found
                 </p>
             </div>
         </div>
@@ -93,6 +93,7 @@ function RootComponent() {
                             <Button asChild>
                                 <Link
                                     to="/sign-in"
+                                    //search={{ redirect: location.href }}
                                     activeProps={{
                                         className: "font-bold underline",
                                     }}

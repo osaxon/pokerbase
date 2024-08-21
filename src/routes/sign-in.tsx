@@ -17,12 +17,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { loginError, useLogin, usePasswordReset } from "@/utils/auth";
+import { useLogin, usePasswordReset } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useLayoutEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 
 const validSearchParms = z.object({
@@ -55,30 +54,28 @@ function SignInComponent() {
 
     const pb = Route.useRouteContext({ select: ({ pb }) => pb });
 
-    const { mutate: login, isError } = useLogin(router, pb);
+    const { mutateAsync: login } = useLogin(router, pb);
 
     const { mutateAsync: OAuth } = useOAuth(router);
     const { pwReset } = usePasswordReset(pb);
 
     const onSubmit = async (formData: z.infer<typeof loginSchema>) => {
-        login(formData);
-        if (isError) {
-            form.setError("password", loginError);
-            form.setError("email", loginError);
+        const user = await login(formData);
+        if (user) {
+            ctx.user = { ...user.record };
         }
     };
 
     const OAuthLogin = async () => {
-        toast.success("oauth login");
-        const data = OAuth({ provider: "github", pb });
-        ctx.user = { ...data };
+        const data = await OAuth({ provider: "github", pb });
+        ctx.user = { ...data.record };
     };
 
     useLayoutEffect(() => {
         if (ctx.pb.authStore.isValid && search.redirect) {
             router.history.push(search.redirect);
         }
-    }, [search.redirect, ctx.pb.authStore.isValid]);
+    }, [search.redirect, ctx.pb.authStore.isValid, router.history]);
 
     return (
         <div className="mx-auto max-w-lg min-h-screen py-10 px-2">

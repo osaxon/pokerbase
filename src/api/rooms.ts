@@ -14,6 +14,7 @@ import {
 import { queryOptions, useMutation } from "@tanstack/react-query";
 import { createExtendedRoute } from "./utils";
 import { UserWithSquad } from "./user";
+import { MyRouter } from "@/App";
 
 export const roomQuery = (id: string, pb: TypedPocketBase) =>
     queryOptions({
@@ -60,7 +61,6 @@ export const fetchSingleRoom = async (id: string, pb: TypedPocketBase) => {
     const res = await pb.collection("rooms").getOne<RoomExpanded>(id, {
         expand: "members, stories, activeStory, votes_via_room.user",
     });
-    console.log(res, "resss");
     return res;
 };
 
@@ -95,12 +95,13 @@ export const joinRoom = async (
     });
 };
 
+// TODO refactor this mess...
 export const joinRoomAsGuest = async (
     name: string,
     pb: TypedPocketBase,
-    roomId: string
+    roomId: string,
+    router: MyRouter
 ) => {
-    console.log(roomId, "<<<<<<----the room");
     const tempPw = `${name}_${new Date().valueOf()}`;
     const guestData = {
         username: `${name}_${new Date().valueOf()}`,
@@ -140,6 +141,11 @@ export const joinRoomAsGuest = async (
         console.log(error);
         return error;
     }
+    const loc = router.buildLocation({
+        to: "/rooms/$id",
+        params: { id: roomId },
+    });
+    router.commitLocation(loc);
 };
 
 export const setActiveStory = async (
@@ -160,7 +166,6 @@ export const utils = {
         votes: VotesResponse<VotesRecord>[]
     ) => {
         const voterIds = new Set(votes.map((v) => v.user));
-        console.log(voterIds);
         if (roomMembers.length !== voterIds.size) {
             return false;
         }
@@ -204,6 +209,7 @@ export const utils = {
         return notVoted;
     },
     getVoteStatusMessage: (notVoted: { user: string; id: string }[]) => {
+        console.log(notVoted);
         if (!notVoted) return "Waiting for votes...";
         if (notVoted && notVoted.length >= 3)
             return `Still waiting for ${notVoted.length} votes`;
