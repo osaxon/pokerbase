@@ -16,6 +16,16 @@ import { createExtendedRoute } from "./utils";
 import { UserWithSquad } from "./user";
 import { MyRouter } from "@/App";
 
+export const roomExists = (id: string, pb: TypedPocketBase) => {
+    return queryOptions({
+        queryKey: ["rooms", "list", id],
+        queryFn: async () =>
+            pb
+                .collection("rooms")
+                .getList(1, 1, { filter: pb.filter("id = {:id}", { id }) }),
+    });
+};
+
 export const roomQuery = (id: string, pb: TypedPocketBase) =>
     queryOptions({
         queryKey: ["rooms", id],
@@ -85,12 +95,13 @@ export const joinRoom = async (
     userId: string,
     pb: TypedPocketBase,
     roomId: string
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
 ) => {
     const url = createExtendedRoute("/api/ext/rooms/:room/join/:user", {
         user: userId,
         room: roomId,
     });
-    return await pb.send(url, {
+    await pb.send(url, {
         method: "POST",
     });
 };
@@ -141,6 +152,7 @@ export const joinRoomAsGuest = async (
         console.log(error);
         return error;
     }
+    router.invalidate();
     const loc = router.buildLocation({
         to: "/rooms/$id",
         params: { id: roomId },
@@ -157,8 +169,7 @@ export const setActiveStory = async (
 };
 
 export const utils = {
-    isJoined: (userId: string, room: RoomsResponse) =>
-        room.members.includes(userId),
+    isJoined: (userId: string, members: string[]) => members.includes(userId),
     isSquadMember: (user: UserWithSquad, room: RoomExpanded) =>
         room.squad === user.squad,
     isReadyForResults: (
@@ -209,7 +220,6 @@ export const utils = {
         return notVoted;
     },
     getVoteStatusMessage: (notVoted: { user: string; id: string }[]) => {
-        console.log(notVoted);
         if (!notVoted) return "Waiting for votes...";
         if (notVoted && notVoted.length >= 3)
             return `Still waiting for ${notVoted.length} votes`;

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useLogin, usePasswordReset } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useLayoutEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -127,7 +128,7 @@ function SignInComponent() {
                                     variant="link"
                                     type="button"
                                     size="sm"
-                                    className="text-muted-foreground"
+                                    className="text-primary-foreground"
                                     onClick={() =>
                                         pwReset("oliverrsaxon@gmail.com")
                                     }
@@ -137,22 +138,18 @@ function SignInComponent() {
                                 <Button className="w-full" type="submit">
                                     Sign In
                                 </Button>
-                                <Button
-                                    onClick={async () => {
-                                        pb.authStore.clear();
-                                        router.navigate({ to: "/" });
-                                    }}
-                                    className="w-full"
-                                    type="button"
-                                >
-                                    Sign out
-                                </Button>
                             </div>
                         </form>
                     </Form>
                     <div>
-                        <Separator className="my-8" />
-                        <Button className="w-full" onClick={OAuthLogin}>
+                        <Separator className="my-4" />
+
+                        <Button
+                            variant="ghost"
+                            className="w-full bg-black dark:bg-white text-white dark:text-black hover:opacity-50 inline-flex items-center gap-2"
+                            onClick={OAuthLogin}
+                        >
+                            <GitHubLogoIcon />
                             Sign in with GitHub
                         </Button>
                     </div>

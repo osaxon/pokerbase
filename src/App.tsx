@@ -29,9 +29,6 @@ const router = createRouter({
             </div>
         );
     },
-    defaultPendingComponent: () => {
-        return <div>...loading</div>;
-    },
 });
 
 export type MyRouter = typeof router;
@@ -45,7 +42,6 @@ declare module "@tanstack/react-router" {
 export default function App() {
     const { pb } = usePocketbase();
     const user = pb.authStore.model;
-    console.log(user, "the user in App.tsx");
 
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

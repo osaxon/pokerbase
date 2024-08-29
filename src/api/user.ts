@@ -4,6 +4,7 @@ import {
     TypedPocketBase,
     UsersRecord,
     UsersResponse,
+    UsersRoleOptions,
 } from "@/types/pocketbase-types";
 import { queryOptions } from "@tanstack/react-query";
 
@@ -33,4 +34,26 @@ const fetchUserById = async (userId: string, pb: TypedPocketBase) => {
     } catch (error) {
         return "no user id";
     }
+};
+
+export const signUp = async (pb: TypedPocketBase, name: string) => {
+    const tempPw = `${name}_${new Date().valueOf()}`;
+
+    const guestData = {
+        username: `${name}_${new Date().valueOf()}`,
+        email: `${name}_${new Date().valueOf()}@guestaccount.com`,
+        password: tempPw,
+        passwordConfirm: tempPw,
+        name: name,
+        role: UsersRoleOptions.guest,
+        verifed: true,
+    };
+    const user = await pb
+        .collection("users")
+        .create<UsersResponse<UsersRecord>>(guestData);
+    if (!user) throw new Error("failed to create user");
+
+    return pb
+        .collection("users")
+        .authWithPassword(guestData.username, guestData.password);
 };

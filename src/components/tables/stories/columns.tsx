@@ -11,13 +11,25 @@ import { ColumnDef, flexRender, Row } from "@tanstack/react-table";
 import { ArrowUpDown, Trash2 } from "lucide-react";
 import { CSSProperties } from "react";
 
-export const RowDragHandleCell = ({ rowId }: { rowId: string }) => {
+export const RowDragHandleCell = ({
+    rowId,
+    disabled,
+}: {
+    rowId: string;
+    disabled?: boolean;
+}) => {
     const { attributes, listeners } = useSortable({
         id: rowId,
     });
     return (
         // Alternatively, you could set these attributes on the rows themselves
-        <Button size="icon" variant="ghost" {...attributes} {...listeners}>
+        <Button
+            size="icon"
+            variant="ghost"
+            {...attributes}
+            {...listeners}
+            disabled={disabled}
+        >
             <ArrowUpDown />
         </Button>
     );
@@ -61,10 +73,17 @@ export function DraggableRow({
 // eslint-disable-next-line react-refresh/only-export-components
 export const columns: ColumnDef<StoriesResponse<StoriesRecord>>[] = [
     {
-        id: "drag-handle",
+        accessorKey: "order",
         header: "Order",
-        cell: ({ row }) => <RowDragHandleCell rowId={row.id} />,
+        cell: ({ row, table }) => {
+            console.log(table);
+            return <RowDragHandleCell rowId={row.id} />;
+        },
         size: 60,
+    },
+    {
+        accessorKey: "id",
+        header: "ID",
     },
     {
         accessorKey: "title",
@@ -85,6 +104,10 @@ export const columns: ColumnDef<StoriesResponse<StoriesRecord>>[] = [
     {
         accessorKey: "points",
         header: "Points",
+    },
+    {
+        accessorKey: "order",
+        header: "order",
     },
     {
         accessorKey: "status",

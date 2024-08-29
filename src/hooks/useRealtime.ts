@@ -8,7 +8,7 @@ import type {
     TypedPocketBase,
     CollectionRecords,
 } from "@/types/pocketbase-types";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 type Responses<T = never> = {
     rooms: RoomsResponse<T>;
@@ -23,20 +23,22 @@ export const useRealtime = <C extends keyof Responses>(
     pb: TypedPocketBase,
     callback: (
         d: RecordSubscription<Responses<CollectionRecords[C]>[C]>
-    ) => void
+    ) => void,
+    expand?: string
 ) => {
-    const realTime = async () => {
+    const realTime = useCallback(async () => {
         return await pb
             .collection(collection)
             .subscribe<
                 Responses<CollectionRecords[C]>[C]
-            >("*", (d) => callback(d));
-    };
+            >("*", (d) => callback(d), { expand: expand });
+    }, []);
 
     useEffect(() => {
+        console.log("[REAL-TIME]" + collection);
         realTime();
         return () => {
             pb.collection(collection).unsubscribe("*");
         };
-    }, []);
+    }, [collection, pb, realTime]);
 };

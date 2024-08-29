@@ -27,6 +27,7 @@ export async function OAuth(provider: Providers, pb: TypedPocketBase) {
     return authData;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const useOAuth = (router: MyRouter) =>
     useMutation({
         mutationKey: ["auth", "signin"],
@@ -36,8 +37,5 @@ export const useOAuth = (router: MyRouter) =>
         }) => {
             const d = await OAuth(vars.provider, vars.pb);
             return d;
-        },
-        onSuccess: () => {
-            router.invalidate();
         },
     });

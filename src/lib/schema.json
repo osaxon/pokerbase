@@ -164,8 +164,8 @@
             }
         ],
         "indexes": [],
-        "listRule": "@request.auth.squad = squad",
-        "viewRule": "@request.auth.squad = squad",
+        "listRule": "",
+        "viewRule": "",
         "createRule": "",
         "updateRule": "id = @request.auth.id",
         "deleteRule": "id = @request.auth.id",
@@ -361,10 +361,10 @@
             }
         ],
         "indexes": [],
-        "listRule": "  @request.auth.verified = true && @request.auth.id ?= members.id",
-        "viewRule": "",
-        "createRule": "@request.auth.verified = true",
-        "updateRule": "@request.auth.verified = true",
+        "listRule": "",
+        "viewRule": "@request.auth.id ?= members.id",
+        "createRule": "",
+        "updateRule": "",
         "deleteRule": null,
         "options": {}
     },
@@ -488,12 +488,26 @@
                         "estimated"
                     ]
                 }
+            },
+            {
+                "system": false,
+                "id": "p1fcdoid",
+                "name": "order",
+                "type": "number",
+                "required": false,
+                "presentable": false,
+                "unique": false,
+                "options": {
+                    "min": null,
+                    "max": null,
+                    "noDecimal": false
+                }
             }
         ],
         "indexes": [],
-        "listRule": "@request.auth.verified = true && @request.auth.id ?= room.members.id",
-        "viewRule": "@request.auth.verified = true && @request.auth.id ?= room.members.id",
-        "createRule": "@request.auth.verified = true",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "",
         "updateRule": null,
         "deleteRule": null,
         "options": {}
@@ -577,8 +591,8 @@
         "indexes": [],
         "listRule": "",
         "viewRule": "",
-        "createRule": "@request.auth.verified = true && @request.auth.id ?= room.squad.members.id",
-        "updateRule": "@request.auth.verified = true && @request.auth.id = user.id",
+        "createRule": "@request.auth.id ?= room.members.id",
+        "updateRule": "@request.auth.id = user.id",
         "deleteRule": null,
         "options": {}
     },

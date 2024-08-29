@@ -21,8 +21,8 @@ import { useMediaQuery } from "usehooks-ts";
 import { Button } from "./ui/button";
 
 export interface DrawerDialogProps extends DialogPrimitive.DialogProps {
-    triggerLabel: string;
-    title: string;
+    triggerLabel: React.ReactNode;
+    title: React.ReactNode;
     description?: string;
     drawerCloseLabel?: string;
     children: React.ReactNode;

@@ -71,13 +71,11 @@ function RootComponent() {
             <div className="p-2 flex gap-2 text-lg">
                 <div className="flex items-center justify-between w-full">
                     <nav className="flex items-center gap-6">
-                        <Link
-                            to="/"
-                            activeProps={{
-                                className: "font-bold underline",
-                            }}
-                        >
+                        <Link to="/" className="flex items-center">
                             <SvgLogo />
+                            <p className="font-mono tracking-tighter font-bold">
+                                Scrum Poker
+                            </p>
                         </Link>
                     </nav>
                     <div className="flex items-center gap-2">
@@ -93,7 +91,6 @@ function RootComponent() {
                             <Button asChild>
                                 <Link
                                     to="/sign-in"
-                                    //search={{ redirect: location.href }}
                                     activeProps={{
                                         className: "font-bold underline",
                                     }}

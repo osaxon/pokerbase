@@ -99,6 +99,7 @@ export enum StoriesStatusOptions {
 	"estimated" = "estimated",
 }
 export type StoriesRecord = {
+	order?: number
 	points?: number
 	room?: RecordIdString
 	status?: StoriesStatusOptions
