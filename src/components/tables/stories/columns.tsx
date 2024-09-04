@@ -8,7 +8,7 @@ import {
 } from "@/types/pocketbase-types";
 import { useSortable } from "@dnd-kit/sortable";
 import { ColumnDef, flexRender, Row } from "@tanstack/react-table";
-import { ArrowUpDown, Trash2 } from "lucide-react";
+import { ArrowUpDown, GripVertical, Trash2 } from "lucide-react";
 import { CSSProperties } from "react";
 
 export const RowDragHandleCell = ({
@@ -29,8 +29,9 @@ export const RowDragHandleCell = ({
             {...attributes}
             {...listeners}
             disabled={disabled}
+            className="cursor-grab"
         >
-            <ArrowUpDown />
+            <GripVertical className="text-muted" />
         </Button>
     );
 };
@@ -75,9 +76,13 @@ export const columns: ColumnDef<StoriesResponse<StoriesRecord>>[] = [
     {
         accessorKey: "order",
         header: "Order",
-        cell: ({ row, table }) => {
-            console.log(table);
-            return <RowDragHandleCell rowId={row.id} />;
+        cell: ({ row, getValue }) => {
+            return (
+                <div className="flex items-center">
+                    <RowDragHandleCell rowId={row.id} />
+                    <span>{getValue() as string}</span>
+                </div>
+            );
         },
         size: 60,
     },
@@ -104,10 +109,6 @@ export const columns: ColumnDef<StoriesResponse<StoriesRecord>>[] = [
     {
         accessorKey: "points",
         header: "Points",
-    },
-    {
-        accessorKey: "order",
-        header: "order",
     },
     {
         accessorKey: "status",

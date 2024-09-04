@@ -174,9 +174,14 @@ export const utils = {
         room.squad === user.squad,
     isReadyForResults: (
         roomMembers: string[],
-        votes: VotesResponse<VotesRecord>[]
+        votes: VotesResponse<VotesRecord>[],
+        activeStory: string
     ) => {
-        const voterIds = new Set(votes.map((v) => v.user));
+        const voterIds = new Set(
+            votes.filter((s) => s.story === activeStory).map((v) => v.user)
+        );
+        console.log(voterIds);
+
         if (roomMembers.length !== voterIds.size) {
             return false;
         }

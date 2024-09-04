@@ -72,7 +72,6 @@ export const Route = createFileRoute("/rooms/$id")({
             }
         }
     },
-    wrapInSuspense: true,
     component: RoomComponent,
 });
 
@@ -85,7 +84,7 @@ function RoomComponent() {
         votesQueryOptions(ctx.pb, room.id)
     );
     const [showResults, setShowResults] = useState(
-        utils.isReadyForResults(room.members, votes)
+        utils.isReadyForResults(room.members, votes, room.activeStory)
     );
 
     const [stragglers, setStragglers] = useState<
@@ -131,7 +130,11 @@ function RoomComponent() {
             record,
         ];
 
-        const isReady = utils.isReadyForResults(room.members, updatedVotes);
+        const isReady = utils.isReadyForResults(
+            room.members,
+            updatedVotes,
+            room.activeStory
+        );
 
         const leftToVote = utils.getNotVoted(
             room,
@@ -178,6 +181,7 @@ function RoomComponent() {
                     ...old,
                     members: newRoomMembers,
                     stories: updatedStories,
+                    activeStory: d.record.activeStory,
                 }
         );
     };
@@ -202,6 +206,7 @@ function RoomComponent() {
                     <p className="text-2xl font-mono">
                         {room.expand?.activeStory.title}
                     </p>
+                    <p>{room.expand?.stories[0].title}</p>
                     <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Tabs className="col-span-3" defaultValue="vote">
                             <TabsList>

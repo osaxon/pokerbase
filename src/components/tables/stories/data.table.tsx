@@ -38,6 +38,7 @@ import {
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
+import { createExtendedRoute } from "@/api/utils";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -70,19 +71,19 @@ async function saveListOrder(
     data: StoriesResponse<StoriesRecord>[],
     pb: TypedPocketBase
 ) {
-    const promises: Promise<void>[] = [];
+    const oldDataMap = new Map(oldData.map((story) => [story.id, story.order]));
+    const updateMap: { id: string; order: number }[] = [];
     data.forEach((row) => {
-        const existingRow = oldData.find((story) => story.id === row.id);
-        if (existingRow?.order !== row.order) {
-            promises.push(
-                pb.collection("stories").update(row.id, {
-                    order: row.order,
-                })
-            );
+        const prevOrder = oldDataMap.get(row.id);
+        if (prevOrder !== row.order) {
+            updateMap.push({ id: row.id, order: row.order });
         }
     });
-    console.log(`Updating ${promises.length} stories`);
-    return Promise.all(promises);
+    const url = createExtendedRoute("/api/ext/stories");
+    return pb.send<{ stories: Array<StoriesRecord> }>(url, {
+        method: "PUT",
+        body: JSON.stringify({ stories: updateMap }),
+    });
 }
 
 export function StoriesTable({
@@ -99,7 +100,7 @@ export function StoriesTable({
         order: userId === roomOwnerId,
     });
 
-    const { data, refetch, fetchStatus } = useSuspenseQuery({
+    const { data } = useSuspenseQuery({
         queryKey: ["stories", roomId],
         queryFn: async () =>
             pb
@@ -119,6 +120,7 @@ export function StoriesTable({
 
     useRealtime("stories", pb, (d) => {
         const { record } = d;
+        console.log("[REALTIME]", record);
         queryClient.setQueryData<
             unknown,
             string[],
@@ -133,6 +135,7 @@ export function StoriesTable({
             StoriesResponse<StoriesRecord>[]
         >(["stories", roomId]);
         if (updatedData) {
+            console.log("updating table data");
             setSortableData(updatedData);
         }
     });
@@ -160,6 +163,7 @@ export function StoriesTable({
     const { mutate: saveOrderToDb, isPending } = useMutation({
         mutationKey: ["stories", roomId],
         mutationFn: async () => saveListOrder(data, sortableData, pb),
+        onSuccess: () => resetOrder(),
     });
 
     function handleDragEnd(event: DragEndEvent) {
@@ -200,9 +204,7 @@ export function StoriesTable({
                         <Button
                             size="icon"
                             variant="ghost"
-                            disabled={
-                                isPending || arraysAreEqual(data, sortableData)
-                            }
+                            disabled={arraysAreEqual(data, sortableData)}
                             onClick={() => saveOrderToDb()}
                         >
                             {isPending ? <LoadingSpinner /> : <SaveIcon />}

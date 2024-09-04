@@ -31,6 +31,7 @@ export const Route = createFileRoute("/rooms/$id/join")({
 
 function JoinRoomComponent() {
     const { id } = Route.useParams();
+    const query = Route.useSearch();
     const ctx = Route.useRouteContext();
     const {
         data: { items },
@@ -38,6 +39,7 @@ function JoinRoomComponent() {
     return (
         <div className="min-h-[70vh] mx-auto max-w-2xl flex flex-col items-center justify-center gap-4">
             <h1>{items[0].name}</h1>
+            <p>{JSON.stringify(query)}</p>
             <p>Join your team in the room to begin</p>
             <JoinRoomDialog roomId={id} />
         </div>
@@ -89,7 +91,6 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        //joinAsGuest({ name: name, roomId, pb: ctx.pb });
         const data = await signUpAsGuest({ name, pb: ctx.pb });
         if (data.record) {
             ctx.user = { ...data.record };
@@ -106,10 +107,10 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
                 isSigningUp || isJoining ? (
                     <div className="flex items-center gap-2">
                         <LoadingSpinner />
-                        <p className="text-muted">Joining room...</p>
+                        <p className="text-muted">Setting up your account...</p>
                     </div>
                 ) : (
-                    "Join"
+                    "Next"
                 )
             }
         >
@@ -133,10 +134,7 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
                                     className="hover:underline"
                                     to="/sign-in"
                                     search={{
-                                        redirect: router.buildLocation({
-                                            to: "/rooms/$id/join",
-                                            params: { id: roomId },
-                                        }).href,
+                                        redirect: router.state.location.href,
                                     }}
                                 >
                                     Sign In here
