@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { roomsViewQuery, utils } from "@/api/rooms";
+import { RoomExpanded, roomsViewQuery, utils } from "@/api/rooms";
 import DrawerDialog from "@/components/DrawerDialog";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { DataTable } from "@/components/tables/data.table";
@@ -12,11 +12,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {
-    RoomsResponse,
-    UsersRecord,
-    UsersResponse,
-} from "@/types/pocketbase-types";
 import { protectedRoute } from "@/utils/auth";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -48,7 +43,7 @@ export const RoomCard = ({
     room,
 }: {
     userId: string;
-    room: RoomsResponse<{ members: UsersResponse<UsersRecord>[] }>;
+    room: RoomExpanded;
 }) => {
     const noStories = room.stories.length;
 
@@ -84,11 +79,15 @@ export const RoomCard = ({
                 <Button
                     asChild
                     variant={
-                        utils.isJoined(userId, room) ? "outline" : "default"
+                        utils.isJoined(userId, room.members)
+                            ? "outline"
+                            : "default"
                     }
                 >
                     <Link to="/rooms/$id" params={{ id: room.id }}>
-                        {utils.isJoined(userId, room) ? "Open" : "Join Now"}
+                        {utils.isJoined(userId, room.members)
+                            ? "Open"
+                            : "Join Now"}
                     </Link>
                 </Button>
             </CardFooter>

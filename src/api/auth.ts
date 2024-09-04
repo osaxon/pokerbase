@@ -1,4 +1,3 @@
-import { MyRouter } from "@/App";
 import { TypedPocketBase } from "@/types/pocketbase-types";
 import { useMutation } from "@tanstack/react-query";
 
@@ -28,7 +27,7 @@ export async function OAuth(provider: Providers, pb: TypedPocketBase) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const useOAuth = (router: MyRouter) =>
+export const useOAuth = () =>
     useMutation({
         mutationKey: ["auth", "signin"],
         mutationFn: async (vars: {

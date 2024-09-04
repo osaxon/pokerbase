@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { joinRoom, joinRoomAsGuest, roomQuery, utils } from "@/api/rooms";
+import { joinRoom, roomQuery, utils } from "@/api/rooms";
 import { useAddVote, useUpdateVote, votesQueryOptions } from "@/api/votes";
 import { Button } from "@/components/ui/button";
 import {
@@ -344,21 +344,7 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
             setDialogOpen(false);
         },
     });
-    const { mutate: joinAsGuest, isPending: isJoiningAsGuest } = useMutation({
-        mutationKey: ["rooms", "guest"],
-        mutationFn: async ({
-            name,
-            roomId,
-            pb,
-        }: {
-            name: string;
-            roomId: string;
-            pb: TypedPocketBase;
-        }) => await joinRoomAsGuest(name, pb, roomId, router),
-        onSettled: async () => {
-            setDialogOpen(false);
-        },
-    });
+
     const { mutateAsync: signUpAsGuest, isPending: isSigningUp } = useMutation({
         mutationKey: ["user", userId],
         mutationFn: async (vars: { name: string; pb: TypedPocketBase }) =>
@@ -386,7 +372,7 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
             drawerCloseLabel="Close"
             title="Join Room"
             triggerLabel={
-                isJoiningAsGuest || isJoining ? (
+                isSigningUp || isJoining ? (
                     <div className="flex items-center gap-2">
                         <LoadingSpinner />
                         <p className="text-muted">Joining room...</p>
@@ -396,7 +382,7 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
                 )
             }
         >
-            {isJoiningAsGuest || isJoining ? (
+            {isSigningUp || isJoining ? (
                 <div className="flex items-center gap-2">
                     <LoadingSpinner />
                     <p className="text-muted">Joining room...</p>

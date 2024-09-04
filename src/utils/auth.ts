@@ -12,7 +12,6 @@ import { MyRouter } from "@/App";
 import { toast } from "sonner";
 import { ParsedLocation } from "@tanstack/react-router";
 import { MyRouterContext } from "@/routes/__root";
-import { routeTree } from "../routeTree.gen";
 
 export const loginError = {
     type: "manual",
@@ -62,12 +61,9 @@ export const usePasswordReset = (pb: TypedPocketBase) => {
 type BeforeLoadProps = {
     location: ParsedLocation;
     context: MyRouterContext;
-}
+};
 
-export const protectedRoute = ({
-    location,
-    context,
-}: BeforeLoadProps) => {
+export const protectedRoute = ({ location, context }: BeforeLoadProps) => {
     if (!context.pb.authStore.isValid) {
         throw redirect({
             to: "/sign-in",
