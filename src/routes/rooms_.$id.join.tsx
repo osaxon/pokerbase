@@ -11,11 +11,25 @@ import {
     createFileRoute,
     Link,
     notFound,
+    redirect,
     useRouter,
 } from "@tanstack/react-router";
 import { useState } from "react";
 
 export const Route = createFileRoute("/rooms/$id/join")({
+    beforeLoad: ({ context, params }) => {
+        if (context.pb.authStore.isValid) {
+            const usersRooms: string[] = context.pb.authStore.model?.rooms;
+            if (usersRooms.includes(params.id)) {
+                throw redirect({
+                    to: "/rooms/$id",
+                    params: {
+                        id: params.id,
+                    },
+                });
+            }
+        }
+    },
     loader: async ({ context, params }) => {
         const room = await context.queryClient.ensureQueryData(
             roomExists(params.id, context.pb)
@@ -31,7 +45,6 @@ export const Route = createFileRoute("/rooms/$id/join")({
 
 function JoinRoomComponent() {
     const { id } = Route.useParams();
-    const query = Route.useSearch();
     const ctx = Route.useRouteContext();
     const {
         data: { items },
@@ -39,7 +52,6 @@ function JoinRoomComponent() {
     return (
         <div className="min-h-[70vh] mx-auto max-w-2xl flex flex-col items-center justify-center gap-4">
             <h1>{items[0].name}</h1>
-            <p>{JSON.stringify(query)}</p>
             <p>Join your team in the room to begin</p>
             <JoinRoomDialog roomId={id} />
         </div>

@@ -27,11 +27,9 @@ export type MyRouterContext = {
 export const Route = createRootRouteWithContext<MyRouterContext>()({
     pendingMs: 3000,
     component: RootComponent,
-    beforeLoad: async ({ context }) => {
-        try {
-            await context.pb.health.check();
-        } catch (error) {
-            throw new ApplicationError("API health check failed");
+    beforeLoad: ({ context }) => {
+        if (!context.pb) {
+            throw new ApplicationError("error with pb");
         }
     },
     errorComponent: Error,

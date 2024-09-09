@@ -56,22 +56,6 @@ export const Route = createFileRoute("/rooms/$id")({
             });
         }
     },
-    loader: async ({ context, params }) => {
-        if (context.pb.authStore.isValid) {
-            try {
-                await context.queryClient.ensureQueryData(
-                    roomQuery(params.id, context.pb)
-                );
-            } catch (error) {
-                throw redirect({
-                    to: "/rooms/$id/join",
-                    params: {
-                        id: params.id,
-                    },
-                });
-            }
-        }
-    },
     component: RoomComponent,
 });
 

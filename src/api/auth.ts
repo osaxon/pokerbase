@@ -1,5 +1,6 @@
+import { MyRouter } from "@/App";
 import { TypedPocketBase } from "@/types/pocketbase-types";
-import { useMutation } from "@tanstack/react-query";
+import { QueryClient, useMutation } from "@tanstack/react-query";
 
 type Providers = "github";
 
@@ -26,8 +27,19 @@ export async function OAuth(provider: Providers, pb: TypedPocketBase) {
     return authData;
 }
 
+export async function signOut(
+    router: MyRouter,
+    pb: TypedPocketBase,
+    queryClient: QueryClient
+) {
+    pb.authStore.clear();
+    queryClient.clear();
+    await queryClient.cancelQueries();
+    router.navigate({ to: "/" });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const useOAuth = () =>
+export const useOAuth = (router: MyRouter) =>
     useMutation({
         mutationKey: ["auth", "signin"],
         mutationFn: async (vars: {
@@ -36,5 +48,10 @@ export const useOAuth = () =>
         }) => {
             const d = await OAuth(vars.provider, vars.pb);
             return d;
+        },
+        onSuccess: () => {
+            if (!router.state.location.search.redirect) {
+                router.navigate({ to: "/rooms" });
+            }
         },
     });

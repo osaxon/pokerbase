@@ -18,7 +18,11 @@ function Home() {
 
                 <div className="flex gap-4">
                     <Button>Sign Up Now</Button>
-                    <Button variant="outline">Quick Play</Button>
+                    <div className="flex flex-col">
+                        <Button disabled variant="outline">
+                            Quick Play
+                        </Button>
+                    </div>
                 </div>
             </section>
             <section className="min-h-[70dvh] items-center py-20">

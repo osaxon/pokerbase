@@ -1,6 +1,5 @@
-import { squadQuery, useSetSquad } from "@/api/squads";
+import { squadQuery } from "@/api/squads";
 import { UserWithSquad, userQuery } from "@/api/user";
-import DrawerDialog from "@/components/DrawerDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,13 +19,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Metric, useMetrics } from "@/hooks/useMetrics";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -35,7 +27,6 @@ import { TypedPocketBase, UsersResponse } from "@/types/pocketbase-types";
 import { UserSchemaWithSquad, userSchemaWithSquad } from "@/types/schemas";
 import { protectedRoute } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -57,9 +48,6 @@ export const Route = createFileRoute("/account/")({
 function AccountComponent() {
     const ctx = Route.useRouteContext();
     const user = useUser(ctx);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [newSquad, setNewSquad] = useState("");
-    const { data: squads } = useSuspenseQuery(squadQuery(ctx.pb));
 
     useRealtime("users", ctx.pb, (d) => {
         const { record } = d;
@@ -69,20 +57,6 @@ function AccountComponent() {
             (old) => old && { ...record }
         );
     });
-
-    const squadChangeCallback = () => {
-        ctx.user = {
-            ...ctx.user,
-            squad: newSquad,
-        };
-        setDialogOpen(false);
-    };
-
-    const { mutate: setSquad } = useSetSquad(
-        ctx.pb,
-        ctx.queryClient,
-        squadChangeCallback
-    );
 
     return (
         <div className="max-w-5xl mx-auto py-10 px-2 space-y-6">
@@ -106,57 +80,6 @@ function AccountComponent() {
                         </Avatar>
 
                         <UserAccountForm data={user} />
-
-                        <div className="p-6">
-                            <p>Squad</p>
-                            <p>{user.expand?.squad.name}</p>
-                            <p>{user.squad}</p>
-                            <div className="border">
-                                <p>Router ctx model</p>
-                                <p>{ctx.user?.squad}</p>
-                            </div>
-                            <DrawerDialog
-                                open={dialogOpen}
-                                onOpenChange={setDialogOpen}
-                                title="Change squad"
-                                triggerLabel="Change squad"
-                            >
-                                <div>
-                                    <Select
-                                        onValueChange={(value) =>
-                                            setNewSquad(value)
-                                        }
-                                    >
-                                        <SelectTrigger className="w-[180px]">
-                                            <SelectValue placeholder="Select a squad" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {squads.map((s) => (
-                                                <SelectItem
-                                                    key={s.id}
-                                                    disabled={user.squad.includes(
-                                                        s.id
-                                                    )}
-                                                    value={s.id}
-                                                >
-                                                    {s.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <Button
-                                        onClick={() =>
-                                            setSquad({
-                                                userId: ctx.user?.id,
-                                                squadId: newSquad,
-                                            })
-                                        }
-                                    >
-                                        Submit
-                                    </Button>
-                                </div>
-                            </DrawerDialog>
-                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -164,11 +87,6 @@ function AccountComponent() {
                 metricType="user_metrics"
                 pb={ctx.pb}
                 recordId={user.id}
-            />
-            <MetricsCard
-                metricType="squad_metrics"
-                pb={ctx.pb}
-                recordId={user.squad}
             />
         </div>
     );

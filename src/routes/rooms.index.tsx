@@ -19,6 +19,8 @@ import { columns } from "../components/tables/rooms/columns";
 
 export const Route = createFileRoute("/rooms/")({
     beforeLoad: protectedRoute,
+    loader: ({ context }) =>
+        context.queryClient.ensureQueryData(roomsViewQuery(context.pb)),
     component: RoomsComponent,
 });
 
