@@ -66,8 +66,8 @@ function RootComponent() {
 
     return (
         <>
-            <div className="p-2 flex gap-2 text-lg">
-                <div className="flex items-center justify-between w-full">
+            <div className="px-4 py-2 flex gap-2 text-lg">
+                <div className="flex items-center justify-between w-full px-2">
                     <nav className="flex items-center gap-6">
                         <Link to="/" className="flex items-center">
                             <SvgLogo />

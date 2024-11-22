@@ -64,6 +64,7 @@ interface DataTableProps {
     sortable?: boolean;
     pb: TypedPocketBase;
     queryClient: QueryClient;
+    setNextStoryId: React.Dispatch<React.SetStateAction<string>>;
 }
 
 async function saveListOrder(
@@ -93,6 +94,7 @@ export function StoriesTable({
     roomOwnerId,
     userId,
     queryClient,
+    setNextStoryId,
 }: DataTableProps) {
     const [sorting, setSorting] = useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -183,6 +185,7 @@ export function StoriesTable({
 
     function resetOrder() {
         setSortableData(data);
+        setNextStoryId(data[0].id);
     }
 
     const sensors = useSensors(

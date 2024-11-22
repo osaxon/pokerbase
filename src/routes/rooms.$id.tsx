@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { joinRoom, roomQuery, utils } from "@/api/rooms";
+import {
+    finaliseStory,
+    joinRoom,
+    roomQuery,
+    setActiveStory,
+    utils,
+} from "@/api/rooms";
 import { useAddVote, useUpdateVote, votesQueryOptions } from "@/api/votes";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,6 +76,7 @@ function RoomComponent() {
     const [showResults, setShowResults] = useState(
         utils.isReadyForResults(room.members, votes, room.activeStory)
     );
+    const [nextStoryId, setNextStoryId] = useState(room.stories[1]);
 
     const [stragglers, setStragglers] = useState<
         ReturnType<typeof utils.getNotVoted>
@@ -190,7 +197,7 @@ function RoomComponent() {
                     <p className="text-2xl font-mono">
                         {room.expand?.activeStory.title}
                     </p>
-                    <p>{room.expand?.stories[0].title}</p>
+                    <p>{nextStoryId}</p>
                     <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <Tabs className="col-span-3" defaultValue="vote">
                             <TabsList>
@@ -287,8 +294,20 @@ function RoomComponent() {
                 <Card>
                     <CardHeader>
                         <CardContent className="grid grid-cols-4 gap-2">
-                            <Button>Finalise Story</Button>
-                            <Button>Next Story</Button>
+                            <Button
+                                onClick={() =>
+                                    finaliseStory(room.activeStory, ctx.pb)
+                                }
+                            >
+                                Finalise Story
+                            </Button>
+                            <Button
+                                onClick={() =>
+                                    setActiveStory(room.id, nextStoryId, ctx.pb)
+                                }
+                            >
+                                Next Story
+                            </Button>
                             <Button>Show Results</Button>
                         </CardContent>
                     </CardHeader>
@@ -301,6 +320,7 @@ function RoomComponent() {
                         roomOwnerId={room.owner}
                         userId={userId}
                         queryClient={ctx.queryClient}
+                        setNextStoryId={setNextStoryId}
                     />
                 )}
             </div>

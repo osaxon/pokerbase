@@ -4,6 +4,7 @@ import {
     RoomsViewResponse,
     StoriesRecord,
     StoriesResponse,
+    StoriesStatusOptions,
     TypedPocketBase,
     UsersRecord,
     UsersResponse,
@@ -165,7 +166,15 @@ export const setActiveStory = async (
     storyId: string,
     pb: TypedPocketBase
 ) => {
+    console.log(storyId);
     await pb.collection("rooms").update(roomId, { activeStory: storyId });
+};
+
+export const finaliseStory = async (storyId: string, pb: TypedPocketBase) => {
+    await pb.collection("stories").update(storyId, {
+        voted: true,
+        status: StoriesStatusOptions.estimated,
+    });
 };
 
 export const utils = {
