@@ -40,14 +40,15 @@ export const signUp = async (pb: TypedPocketBase, name: string) => {
     const tempPw = `${name}_${new Date().valueOf()}`;
 
     const guestData = {
-        username: `${name}_${new Date().valueOf()}`,
-        email: `${name}_${new Date().valueOf()}@guestaccount.com`,
+        username: `${name.replace(" ", "_")}_${new Date().valueOf()}`,
+        email: `${name.replace(" ", "_")}_${new Date().valueOf()}@guestaccount.com`,
         password: tempPw,
         passwordConfirm: tempPw,
         name: name,
         role: UsersRoleOptions.guest,
         verifed: true,
     };
+    console.log(guestData);
     const user = await pb
         .collection("users")
         .create<UsersResponse<UsersRecord>>(guestData);

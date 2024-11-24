@@ -5,26 +5,32 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 type Providers = "github";
 
 export async function OAuth(provider: Providers, pb: TypedPocketBase) {
-    const authData = await pb.collection("users").authWithOAuth2({ provider });
+    try {
+        const authData = await pb
+            .collection("users")
+            .authWithOAuth2({ provider });
 
-    const { meta } = authData;
+        const { meta } = authData;
 
-    if (meta?.isNew) {
-        const formData = new FormData();
+        if (meta?.isNew) {
+            const formData = new FormData();
 
-        const res = await fetch(meta.avatarUrl);
+            const res = await fetch(meta.avatarUrl);
 
-        if (res.ok) {
-            const imgBlob = await res.blob();
-            formData.append("avatar", imgBlob);
+            if (res.ok) {
+                const imgBlob = await res.blob();
+                formData.append("avatar", imgBlob);
+            }
+
+            formData.append("name", meta.name);
+
+            await pb.collection("users").update(authData.record.id, formData);
         }
 
-        formData.append("name", meta.name);
-
-        await pb.collection("users").update(authData.record.id, formData);
+        return authData;
+    } catch (error) {
+        // TODO: handle sign in error
     }
-
-    return authData;
 }
 
 export async function signOut(

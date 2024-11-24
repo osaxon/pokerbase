@@ -69,7 +69,9 @@ function RoomComponent() {
     const { id } = Route.useParams();
     const ctx = Route.useRouteContext();
     const userId = ctx.pb.authStore.model?.id;
-    const { data: room } = useSuspenseQuery(roomQuery(id, ctx.pb));
+    const { data: room, refetch: refetchRoom } = useSuspenseQuery(
+        roomQuery(id, ctx.pb)
+    );
     const { data: votes } = useSuspenseQuery(
         votesQueryOptions(ctx.pb, room.id)
     );
@@ -153,10 +155,13 @@ function RoomComponent() {
         console.log("[REAL-TIME-CONNECTION][ROOMS]", d.record);
 
         const prevStories = room?.stories;
+        const prevMembers = room?.members;
         const newRoomMembers = d.record.members;
         const updatedStories = d.record.stories;
 
         console.log({ prev: prevStories, new: updatedStories });
+        console.log({ prevMembers: prevMembers, new: newRoomMembers });
+        refetchRoom();
 
         const isUserJoined = utils.isJoined(userId, newRoomMembers);
 
@@ -192,13 +197,13 @@ function RoomComponent() {
 
     return (
         <Suspense fallback={<p>fallback</p>}>
-            <div className="max-w-5xl mx-auto min-h-screen space-y-8 p-10">
+            <div className="max-w-5xl mx-auto min-h-screen space-y-4 p-10">
                 <div className="space-y-4">
                     <p className="text-2xl font-mono">
                         {room.expand?.activeStory.title}
                     </p>
                     <p>{nextStoryId}</p>
-                    <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <section className="grid grid-cols-1 md:grid-cols-4 md:gap-4 gap-y-4">
                         <Tabs className="col-span-3" defaultValue="vote">
                             <TabsList>
                                 <TabsTrigger value="vote">Vote</TabsTrigger>
@@ -214,7 +219,7 @@ function RoomComponent() {
                                     <span className="ml-1">Results</span>
                                 </TabsTrigger>
                             </TabsList>
-                            <TabsContent className="space-y-6" value="vote">
+                            <TabsContent className="space-y-4" value="vote">
                                 <VoteButtonGrid
                                     room={room}
                                     handleAdd={handleAddOrUpdate}
@@ -291,27 +296,22 @@ function RoomComponent() {
                         </Card>
                     </section>
                 </div>
-                <Card>
-                    <CardHeader>
-                        <CardContent className="grid grid-cols-4 gap-2">
-                            <Button
-                                onClick={() =>
-                                    finaliseStory(room.activeStory, ctx.pb)
-                                }
-                            >
-                                Finalise Story
-                            </Button>
-                            <Button
-                                onClick={() =>
-                                    setActiveStory(room.id, nextStoryId, ctx.pb)
-                                }
-                            >
-                                Next Story
-                            </Button>
-                            <Button>Show Results</Button>
-                        </CardContent>
-                    </CardHeader>
-                </Card>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={() => finaliseStory(room.activeStory, ctx.pb)}
+                    >
+                        Finish
+                    </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() =>
+                            setActiveStory(room.id, nextStoryId, ctx.pb)
+                        }
+                    >
+                        Next
+                    </Button>
+                </div>
+
                 {room.expand?.stories && (
                     <StoriesTable
                         columns={columns}

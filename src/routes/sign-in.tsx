@@ -69,7 +69,9 @@ function SignInComponent() {
 
     const OAuthLogin = async () => {
         const data = await OAuth({ provider: "github", pb });
-        ctx.user = { ...data.record };
+        if (data) {
+            ctx.user = { ...data.record };
+        }
     };
 
     useLayoutEffect(() => {
@@ -80,6 +82,14 @@ function SignInComponent() {
 
     return (
         <div className="mx-auto max-w-lg min-h-screen py-10 px-2">
+            <Button
+                onClick={async () => {
+                    const health = await ctx.pb.health.check();
+                    console.log(health);
+                }}
+            >
+                Test
+            </Button>
             <Card>
                 <CardHeader>
                     <CardTitle>Welcome back</CardTitle>
