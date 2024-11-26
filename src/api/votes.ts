@@ -50,7 +50,7 @@ export const useUpdateVote = (userId: string, queryClient: QueryClient) => {
 export type AddVote = {
     storyId: string;
     userId: string;
-    score: string;
+    score: number;
     pb: TypedPocketBase;
     roomId: string;
     voteId?: string;
@@ -60,20 +60,20 @@ export type UpdateVote = {
     pb: TypedPocketBase;
     storyId: string;
     voteId: string;
-    score: string;
+    score: number;
 };
 
 const addVote = async ({ storyId, userId, score, pb, roomId }: AddVote) => {
     await pb.collection("votes").create({
         user: userId,
         story: storyId,
-        vote: score,
+        value: score,
         room: roomId,
     });
 };
 
 const updateVote = async ({ score, pb, voteId }: UpdateVote) => {
     await pb.collection("votes").update(voteId!, {
-        vote: score,
+        value: score,
     });
 };

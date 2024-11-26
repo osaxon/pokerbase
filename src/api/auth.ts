@@ -1,5 +1,9 @@
 import { MyRouter } from "@/App";
-import { TypedPocketBase } from "@/types/pocketbase-types";
+import {
+    TypedPocketBase,
+    UsersRecord,
+    UsersResponse,
+} from "@/types/pocketbase-types";
 import { QueryClient, useMutation } from "@tanstack/react-query";
 
 type Providers = "github";
@@ -8,7 +12,7 @@ export async function OAuth(provider: Providers, pb: TypedPocketBase) {
     try {
         const authData = await pb
             .collection("users")
-            .authWithOAuth2({ provider });
+            .authWithOAuth2<UsersResponse<UsersRecord>>({ provider });
 
         const { meta } = authData;
 
@@ -24,7 +28,11 @@ export async function OAuth(provider: Providers, pb: TypedPocketBase) {
 
             formData.append("name", meta.name);
 
-            await pb.collection("users").update(authData.record.id, formData);
+            await pb
+                .collection("users")
+                .update<
+                    UsersResponse<UsersRecord>
+                >(authData.record.id, formData);
         }
 
         return authData;
@@ -52,8 +60,7 @@ export const useOAuth = (router: MyRouter) =>
             provider: Providers;
             pb: TypedPocketBase;
         }) => {
-            const d = await OAuth(vars.provider, vars.pb);
-            return d;
+            return OAuth(vars.provider, vars.pb);
         },
         onSuccess: () => {
             if (!router.state.location.search.redirect) {

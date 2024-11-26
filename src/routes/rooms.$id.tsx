@@ -37,7 +37,6 @@ import {
     UsersResponse,
     VotesRecord,
     VotesResponse,
-    VotesVoteOptions,
 } from "@/types/pocketbase-types";
 import { LockClosedIcon, LockOpen1Icon } from "@radix-ui/react-icons";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
@@ -68,7 +67,7 @@ export const Route = createFileRoute("/rooms/$id")({
 function RoomComponent() {
     const { id } = Route.useParams();
     const ctx = Route.useRouteContext();
-    const userId = ctx.pb.authStore.model?.id;
+    const userId = ctx.pb.authStore.record?.id ?? "";
     const { data: room, refetch: refetchRoom } = useSuspenseQuery(
         roomQuery(id, ctx.pb)
     );
@@ -78,7 +77,9 @@ function RoomComponent() {
     const [showResults, setShowResults] = useState(
         utils.isReadyForResults(room.members, votes, room.activeStory)
     );
-    const [nextStoryId, setNextStoryId] = useState(room.stories[1]);
+    const [nextStoryId, setNextStoryId] = useState(
+        room.expand?.stories[1]?.id ?? ""
+    );
 
     const [stragglers, setStragglers] = useState<
         ReturnType<typeof utils.getNotVoted>
@@ -90,8 +91,10 @@ function RoomComponent() {
     const { mutate: addVote } = useAddVote(userId, ctx.queryClient);
     const { mutate: updateVote } = useUpdateVote(userId, ctx.queryClient);
 
-    const handleAddOrUpdate = (vote: string, story: string) => {
+    const handleAddOrUpdate = (vote: number, story: string) => {
+        console.log(vote);
         if (utils.hasVoted(userId, votes, story)) {
+            console.log(vote);
             const voteId = utils.getUserVote(userId, votes, story)?.id;
             if (!voteId) throw new Error("invalid vote id");
             updateVote({
@@ -101,6 +104,7 @@ function RoomComponent() {
                 storyId: room.expand?.activeStory.id ?? "",
             });
         } else {
+            console.log(vote);
             addVote({
                 pb: ctx.pb,
                 score: vote,
@@ -200,7 +204,7 @@ function RoomComponent() {
             <div className="max-w-5xl mx-auto min-h-screen space-y-4 p-10">
                 <div className="space-y-4">
                     <p className="text-2xl font-mono">
-                        {room.expand?.activeStory.title}
+                        {room.expand?.activeStory?.title}
                     </p>
                     <p>{nextStoryId}</p>
                     <section className="grid grid-cols-1 md:grid-cols-4 md:gap-4 gap-y-4">
@@ -362,8 +366,12 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        //joinAsGuest({ name: name, roomId, pb: ctx.pb });
         const data = await signUpAsGuest({ name, pb: ctx.pb });
+
+        const record = data.record;
+
+        console.log(record);
+
         if (data.record) {
             ctx.user = { ...data.record };
         }
@@ -498,25 +506,27 @@ function VoteButtonGrid({
         activeStory: StoriesResponse<StoriesRecord>;
     }>;
     votes: VotesResponse<VotesRecord>[] | undefined;
-    handleAdd: (vote: VotesVoteOptions, story: string) => void;
+    handleAdd: (vote: number, story: string) => void;
     userId: string;
 }) {
-    const isDisabled = (v: VotesVoteOptions) => {
+    const isDisabled = (v: number) => {
         if (!votes || !room.expand?.activeStory.id) return;
         return (
             !room.activeStory ||
             room.expand?.activeStory.voted ||
             utils.getUserVote(userId, votes, room.expand?.activeStory.id)
-                ?.vote === v
+                ?.value === v
         );
     };
+
+    const voteOpts = [0, 1, 2, 3, 5, 8];
 
     return (
         <Card>
             <CardContent className="pt-6">
                 <ul className="flex gap-4 justify-center mx-auto flex-wrap max-w-sm">
-                    {Object.entries(VotesVoteOptions).map(([_k, v]) => (
-                        <li key={v + _k}>
+                    {voteOpts.map((v, i) => (
+                        <li key={v + i}>
                             <Button
                                 disabled={isDisabled(v)}
                                 onClick={() => handleAdd(v, room.activeStory)}

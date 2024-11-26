@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export const Routes = {
     CreateRoomWithStories: "/api/ext/rooms",
-    JoinRoom: "/api/ext/rooms/:room/join/:user",
+    JoinRoom: "/api/ext/rooms/:room/members/:user",
     JoinSquad: "/api/ext/squads/:squad/join/:user",
     UpdateStories: "/api/ext/stories",
 } as const;

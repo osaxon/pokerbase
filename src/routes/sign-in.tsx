@@ -69,7 +69,8 @@ function SignInComponent() {
 
     const OAuthLogin = async () => {
         const data = await OAuth({ provider: "github", pb });
-        if (data) {
+
+        if (data && data.record) {
             ctx.user = { ...data.record };
         }
     };

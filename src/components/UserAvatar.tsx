@@ -14,14 +14,14 @@ import { Button } from "./ui/button";
 
 export default function UserAvatar({ ctx }: { ctx: MyRouterContext }) {
     const { data, isError } = useSuspenseQuery(
-        userQuery(ctx.pb.authStore.model?.id, ctx.pb)
+        userQuery(ctx.pb.authStore.record?.id ?? "", ctx.pb)
     );
     const router = useRouter();
 
     if (!ctx.pb.authStore.isValid || data === "no user id") return null;
     if (isError) return <>Error</>;
 
-    const { avatar, username, role } = data;
+    const { avatar, name } = data;
 
     return (
         <DropdownMenu>
@@ -29,14 +29,15 @@ export default function UserAvatar({ ctx }: { ctx: MyRouterContext }) {
                 <Avatar>
                     <AvatarImage src={avatar} />
                     <AvatarFallback className="bg-green-300/25">
-                        {username.slice(0, 2)}
+                        {name.slice(0, 2)}
                     </AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                {role === "guest" ? (
+                {/* TODO: add method for id'ing guests */}
+                {/* {role === "guest" ? (
                     <DropdownMenuItem>Updgrade</DropdownMenuItem>
-                ) : null}
+                ) : null} */}
                 <DropdownMenuItem asChild>
                     <Link to="/account">Account</Link>
                 </DropdownMenuItem>

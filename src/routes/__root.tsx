@@ -3,7 +3,11 @@ import SvgLogo from "@/components/svg-logo";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import UserAvatar from "@/components/UserAvatar";
-import { TypedPocketBase } from "@/types/pocketbase-types";
+import {
+    TypedPocketBase,
+    UsersRecord,
+    UsersResponse,
+} from "@/types/pocketbase-types";
 import { ApplicationError } from "@/utils/error";
 import { QueryClient } from "@tanstack/react-query";
 import {
@@ -15,13 +19,12 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { ServerCrash } from "lucide-react";
-import { AuthModel } from "pocketbase";
 import { Suspense } from "react";
 
 export type MyRouterContext = {
     queryClient: QueryClient;
     pb: TypedPocketBase;
-    user: AuthModel;
+    user: UsersResponse<UsersRecord>;
 };
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({

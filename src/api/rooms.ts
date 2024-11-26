@@ -8,13 +8,11 @@ import {
     TypedPocketBase,
     UsersRecord,
     UsersResponse,
-    UsersRoleOptions,
     VotesRecord,
     VotesResponse,
 } from "@/types/pocketbase-types";
 import { queryOptions, useMutation } from "@tanstack/react-query";
 import { createExtendedRoute } from "./utils";
-import { UserWithSquad } from "./user";
 import { MyRouter } from "@/App";
 
 export const roomExists = (id: string, pb: TypedPocketBase) => {
@@ -98,7 +96,7 @@ export const joinRoom = async (
     roomId: string
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
 ) => {
-    const url = createExtendedRoute("/api/ext/rooms/:room/join/:user", {
+    const url = createExtendedRoute("/api/ext/rooms/:room/members/:user", {
         user: userId,
         room: roomId,
     });
@@ -121,7 +119,6 @@ export const joinRoomAsGuest = async (
         password: tempPw,
         passwordConfirm: tempPw,
         name: name,
-        role: UsersRoleOptions.guest,
         verifed: true,
         "rooms+": roomId,
     };
@@ -179,8 +176,8 @@ export const finaliseStory = async (storyId: string, pb: TypedPocketBase) => {
 
 export const utils = {
     isJoined: (userId: string, members: string[]) => members.includes(userId),
-    isSquadMember: (user: UserWithSquad, room: RoomExpanded) =>
-        room.squad === user.squad,
+    // isSquadMember: (user: UserWithSquad, room: RoomExpanded) =>
+    //     room.squad === user.squad,
     isReadyForResults: (
         roomMembers: string[],
         votes: VotesResponse<VotesRecord>[],

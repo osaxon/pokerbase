@@ -3,6 +3,7 @@ import { RoomExpanded, roomsViewQuery, utils } from "@/api/rooms";
 import DrawerDialog from "@/components/DrawerDialog";
 import { RoomMemberAvatar } from "@/components/RoomMemberCount";
 import { DataTable } from "@/components/tables/data.table";
+import { columns } from "@/components/tables/rooms/columns";
 import { Button } from "@/components/ui/button";
 import {
     Card,
@@ -15,12 +16,11 @@ import {
 import { protectedRoute } from "@/utils/auth";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { columns } from "../components/tables/rooms/columns";
 
 export const Route = createFileRoute("/rooms/")({
     beforeLoad: protectedRoute,
-    loader: ({ context }) =>
-        context.queryClient.ensureQueryData(roomsViewQuery(context.pb)),
+    // loader: ({ context }) =>
+    //     context.queryClient.ensureQueryData(roomsViewQuery(context.pb)),
     component: RoomsComponent,
 });
 
@@ -33,6 +33,7 @@ export function RoomsComponent() {
             <DrawerDialog triggerLabel="New Room" title="New Room">
                 new room form
             </DrawerDialog>
+            {/* TODO: fix view in pb admin */}
             <section>
                 <DataTable columns={columns} data={view} filterColumn="name" />
             </section>

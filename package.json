@@ -9,7 +9,8 @@
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "test": "vitest",
         "preview": "vite preview",
-        "pb:gen-types": "pnpm dlx pocketbase-typegen --json ./src/lib/schema.json -o ./src/types/pocketbase-types.ts"
+        "pb:gen-types": "pnpm dlx pocketbase-typegen --json ./src/lib/schema.json -o ./src/types/pocketbase-types.ts",
+        "pb:types": "pnpm dlx github:skowrons/pocketbase-typegen --json ./src/lib/schema.json  -o ./src/types/pocketbase-types.ts"
     },
     "dependencies": {
         "@dnd-kit/core": "^6.1.0",

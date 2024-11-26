@@ -19,7 +19,10 @@ import { useState } from "react";
 export const Route = createFileRoute("/rooms/$id/join")({
     beforeLoad: ({ context, params }) => {
         if (context.pb.authStore.isValid) {
-            const usersRooms: string[] = context.pb.authStore.model?.rooms;
+            const usersRooms: string[] =
+                context.pb.authStore.record?.rooms ?? [];
+            console.log(context.pb.authStore.record);
+            console.log(usersRooms);
             if (usersRooms.includes(params.id)) {
                 throw redirect({
                     to: "/rooms/$id",
@@ -103,9 +106,9 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const data = await signUpAsGuest({ name, pb: ctx.pb });
-        if (data.record) {
-            ctx.user = { ...data.record };
+        const record = await signUpAsGuest({ name, pb: ctx.pb });
+        if (record) {
+            ctx.user = { ...record.record };
         }
     };
 

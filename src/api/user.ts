@@ -1,16 +1,9 @@
 import {
-    SquadsRecord,
-    SquadsResponse,
     TypedPocketBase,
     UsersRecord,
     UsersResponse,
-    UsersRoleOptions,
 } from "@/types/pocketbase-types";
 import { queryOptions } from "@tanstack/react-query";
-
-export type UserWithSquad = UsersResponse<
-    UsersRecord & { squad: SquadsResponse<SquadsRecord> }
->;
 
 export const userQuery = (userId: string, pb: TypedPocketBase) =>
     queryOptions({
@@ -25,8 +18,8 @@ const fetchUserById = async (userId: string, pb: TypedPocketBase) => {
     try {
         const user = await pb
             .collection("users")
-            .getOne<UserWithSquad>(userId, { expand: "squad" });
-        const avatar = pb.files.getUrl(user, user.avatar);
+            .getOne<UsersResponse<UsersRecord>>(userId);
+        const avatar = pb.files.getURL(user, user.avatar);
         return {
             ...user,
             avatar,
@@ -45,8 +38,6 @@ export const signUp = async (pb: TypedPocketBase, name: string) => {
         password: tempPw,
         passwordConfirm: tempPw,
         name: name,
-        role: UsersRoleOptions.guest,
-        verifed: true,
     };
     console.log(guestData);
     const user = await pb
@@ -54,7 +45,11 @@ export const signUp = async (pb: TypedPocketBase, name: string) => {
         .create<UsersResponse<UsersRecord>>(guestData);
     if (!user) throw new Error("failed to create user");
 
-    return pb
+    const authData = await pb
         .collection("users")
-        .authWithPassword(guestData.username, guestData.password);
+        .authWithPassword<
+            UsersResponse<UsersRecord>
+        >(guestData.email, guestData.password);
+
+    return authData;
 };
