@@ -368,10 +368,6 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
         e.preventDefault();
         const data = await signUpAsGuest({ name, pb: ctx.pb });
 
-        const record = data.record;
-
-        console.log(record);
-
         if (data.record) {
             ctx.user = { ...data.record };
         }
@@ -433,7 +429,7 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
                         className="w-full"
                         onClick={() =>
                             join({
-                                userId: ctx.user?.id,
+                                userId: ctx.user?.id ?? "",
                                 roomId: roomId,
                                 pb: ctx.pb,
                             })

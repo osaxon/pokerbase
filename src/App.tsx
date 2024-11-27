@@ -41,7 +41,7 @@ declare module "@tanstack/react-router" {
 
 export default function App() {
     const { pb } = usePocketbase();
-    const user = pb.authStore.model;
+    const user = pb.authStore.record;
 
     return (
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">

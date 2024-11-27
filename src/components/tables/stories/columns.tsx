@@ -118,7 +118,7 @@ export const columns: ColumnDef<StoriesResponse<StoriesRecord>>[] = [
             return (
                 <Badge
                     variant={
-                        status === RoomsStatusOptions.completed
+                        status === RoomsStatusOptions.closed
                             ? "outline"
                             : "default"
                     }

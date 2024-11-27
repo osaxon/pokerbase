@@ -1,7 +1,6 @@
 import type { RecordSubscription } from "pocketbase";
 import type {
     RoomsResponse,
-    SquadsResponse,
     StoriesResponse,
     UsersResponse,
     VotesResponse,
@@ -12,7 +11,6 @@ import { useEffect, useCallback } from "react";
 
 type Responses<T = never> = {
     rooms: RoomsResponse<T>;
-    squads: SquadsResponse<T>;
     stories: StoriesResponse<T>;
     users: UsersResponse<T>;
     votes: VotesResponse<T>;

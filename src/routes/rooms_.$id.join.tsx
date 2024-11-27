@@ -74,7 +74,7 @@ function RoomNotFoundError() {
 function JoinRoomDialog({ roomId }: { roomId: string }) {
     const ctx = Route.useRouteContext();
     const router = useRouter();
-    const userId = ctx.pb.authStore.model?.id;
+    const userId = ctx.pb.authStore.record?.id;
     const [dialogOpen, setDialogOpen] = useState(true);
     const { mutate: join, isPending: isJoining } = useMutation({
         mutationKey: ["rooms", userId],
@@ -170,7 +170,7 @@ function JoinRoomDialog({ roomId }: { roomId: string }) {
                         className="w-full"
                         onClick={() =>
                             join({
-                                userId: ctx.user?.id,
+                                userId: ctx.user?.id ?? "",
                                 roomId: roomId,
                                 pb: ctx.pb,
                             })

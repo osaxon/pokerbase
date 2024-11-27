@@ -1,5 +1,5 @@
 import { squadQuery } from "@/api/squads";
-import { UserWithSquad, userQuery } from "@/api/user";
+import { userQuery } from "@/api/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,11 +20,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Metric, useMetrics } from "@/hooks/useMetrics";
 import { useRealtime } from "@/hooks/useRealtime";
 import { useUser } from "@/hooks/useUser";
-import { TypedPocketBase, UsersResponse } from "@/types/pocketbase-types";
-import { UserSchemaWithSquad, userSchemaWithSquad } from "@/types/schemas";
+import { UsersRecord, UsersResponse } from "@/types/pocketbase-types";
+import { userSchema, UserSchema } from "@/types/schemas";
 import { protectedRoute } from "@/utils/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
@@ -37,7 +36,7 @@ export const Route = createFileRoute("/account/")({
     loader: async ({ context }) => {
         Promise.all([
             context.queryClient.ensureQueryData(
-                userQuery(context.pb.authStore.model?.id, context.pb)
+                userQuery(context.pb.authStore.record?.id ?? "", context.pb)
             ),
             context.queryClient.ensureQueryData(squadQuery(context.pb)),
         ]);
@@ -83,23 +82,15 @@ function AccountComponent() {
                     </div>
                 </CardContent>
             </Card>
-            <MetricsCard
-                metricType="user_metrics"
-                pb={ctx.pb}
-                recordId={user.id}
-            />
         </div>
     );
 }
 
-const UserAccountForm = ({ data }: { data: UserWithSquad }) => {
-    const form = useForm<UserSchemaWithSquad>({
-        resolver: zodResolver(userSchemaWithSquad),
+const UserAccountForm = ({ data }: { data: UsersResponse<UsersRecord> }) => {
+    const form = useForm<UserSchema>({
+        resolver: zodResolver(userSchema),
         defaultValues: {
             ...data,
-            squad: {
-                name: data.expand?.squad.name,
-            },
         },
     });
     const [editMode, setEditMode] = useState(false);
@@ -159,31 +150,5 @@ const UserAccountForm = ({ data }: { data: UserWithSquad }) => {
                 </form>
             </Form>
         </div>
-    );
-};
-
-const MetricsCard = ({
-    metricType,
-    pb,
-    recordId,
-}: {
-    metricType: Metric;
-    pb: TypedPocketBase;
-    recordId: string;
-}) => {
-    const { data, error } = useMetrics(metricType, pb, recordId);
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Metrics</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {error ? (
-                    <>Error</>
-                ) : (
-                    <pre>{JSON.stringify(data, null, 2)}</pre>
-                )}
-            </CardContent>
-        </Card>
     );
 };

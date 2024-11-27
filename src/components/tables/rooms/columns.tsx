@@ -62,7 +62,7 @@ export const columns: ColumnDef<RoomsViewResponse<RoomsViewRecord>>[] = [
                 <Badge
                     className="text-lg"
                     variant={
-                        status === RoomsStatusOptions.completed
+                        status === RoomsStatusOptions.closed
                             ? "outline"
                             : "default"
                     }
