@@ -13,16 +13,27 @@ import {
     Outlet,
     createRootRouteWithContext,
 } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 import { ServerCrash } from "lucide-react";
 import { AuthRecord } from "pocketbase";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 
 export type MyRouterContext = {
     queryClient: QueryClient;
     pb: TypedPocketBase;
     user: AuthRecord;
 };
+
+const TanStackRouterDevtools =
+    process.env.NODE_ENV === "production"
+        ? () => null // Render nothing in production
+        : React.lazy(() =>
+              // Lazy load in development
+              import("@tanstack/router-devtools").then((res) => ({
+                  default: res.TanStackRouterDevtools,
+                  // For Embedded Mode
+                  // default: res.TanStackRouterDevtoolsPanel
+              }))
+          );
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
     pendingMs: 3000,
@@ -103,7 +114,9 @@ function RootComponent() {
             </div>
             <hr />
             <Outlet />
-            <TanStackRouterDevtools position="bottom-left" />
+            <Suspense>
+                <TanStackRouterDevtools />
+            </Suspense>
         </>
     );
 }

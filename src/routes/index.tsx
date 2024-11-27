@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
     component: Home,
@@ -17,7 +17,9 @@ function Home() {
                 </header>
 
                 <div className="flex gap-4">
-                    <Button>Sign Up Now</Button>
+                    <Button asChild>
+                        <Link to="/sign-in">Sign Up Now</Link>
+                    </Button>
                     <div className="flex flex-col">
                         <Button disabled variant="outline">
                             Quick Play
